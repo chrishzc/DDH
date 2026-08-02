@@ -1,0 +1,245 @@
+{
+  "acceptance_catalog_id": "DDH-P2-ACCEPTANCE-001",
+  "specification": "DDH-P2-SPEC-001@1.0.0",
+  "required_outcome": "passed_complete_current",
+  "required_failure_classes": [
+    "product_failed",
+    "test_implementation_defect",
+    "test_semantics_uncertain",
+    "runner_failed",
+    "tool_backend_unavailable",
+    "context_insufficient",
+    "system_map_unavailable",
+    "candidate_stale",
+    "test_asset_stale",
+    "impact_underestimated",
+    "scope_expansion_required",
+    "external_side_effect_uncertain"
+  ],
+  "scenarios": [
+    {
+      "scenario_id": "P2-FLOW-001",
+      "class": "end_to_end",
+      "failure_class": "product_failed",
+      "given": "A confirmed L1 workload has one product defect and sufficient separated budgets.",
+      "when": "The single-main-Agent recovery vertical slice executes.",
+      "expected": "Repair inside current scope, create a new Candidate, rerun fixed acceptance and publish work_package_completed without an intermediate human checkpoint."
+    },
+    {
+      "scenario_id": "P2-CLASS-001",
+      "class": "classification",
+      "failure_class": "product_failed",
+      "given": "The runner and admitted test asset are current and healthy while an assertion against fixed expected behavior fails.",
+      "when": "Failure classification executes.",
+      "expected": "Classify product_failed and do not route the failure to runner or test repair."
+    },
+    {
+      "scenario_id": "P2-TEST-001",
+      "class": "test_repair",
+      "failure_class": "test_implementation_defect",
+      "given": "A test helper invokes the correct business scenario incorrectly while expected behavior is unambiguous.",
+      "when": "The test-repair route executes.",
+      "expected": "Create a new asset proposal, pass anti-weakening admission, replay the scenario and execute a known-bad probe before readmission."
+    },
+    {
+      "scenario_id": "P2-TEST-002",
+      "class": "test_semantics",
+      "failure_class": "test_semantics_uncertain",
+      "given": "Two plausible expected values are consistent with available source facts but the Task Specification does not choose one.",
+      "when": "Test diagnosis evaluates semantics.",
+      "expected": "Emit a specification-gap exception and do not let the Agent or test proposer choose the oracle."
+    },
+    {
+      "scenario_id": "P2-TEST-003",
+      "class": "anti_weakening",
+      "failure_class": "test_implementation_defect",
+      "given": "A proposed repair deletes an assertion, lowers a threshold, shrinks a fixture, removes a case or adds skip or xfail.",
+      "when": "Independent test admission evaluates the proposal.",
+      "expected": "Reject the complete asset proposal without consuming it as current verification evidence."
+    },
+    {
+      "scenario_id": "P2-RUNNER-001",
+      "class": "runner_recovery",
+      "failure_class": "runner_failed",
+      "given": "A disposable runner workspace fails before product verification starts and an approved rebuild route remains.",
+      "when": "Recovery routing executes.",
+      "expected": "Rebuild the environment generation and retry the same immutable Subject without product or test mutation."
+    },
+    {
+      "scenario_id": "P2-RUNNER-002",
+      "class": "backend_fallback",
+      "failure_class": "tool_backend_unavailable",
+      "given": "The selected backend is unavailable and one configured, self-checked equivalent backend is approved.",
+      "when": "Backend selection executes.",
+      "expected": "Select the approved backend once, preserve Subject and acceptance identities and continue without human input."
+    },
+    {
+      "scenario_id": "P2-RUNNER-003",
+      "class": "platform_exception",
+      "failure_class": "tool_backend_unavailable",
+      "given": "The selected backend is unavailable and no approved equivalent safe route remains.",
+      "when": "Recovery routing executes.",
+      "expected": "Emit one platform_blocked exception; do not install packages, invent a backend or classify product failure."
+    },
+    {
+      "scenario_id": "P2-CONTEXT-001",
+      "class": "context_recovery",
+      "failure_class": "context_insufficient",
+      "given": "The Agent identifies one required reverse-dependent source selector with a valid purpose and remaining Context budget.",
+      "when": "Context recovery executes.",
+      "expected": "Grant one bounded deduplicated increment and continue with write_authority_changed false."
+    },
+    {
+      "scenario_id": "P2-CONTEXT-002",
+      "class": "context_budget",
+      "failure_class": "context_insufficient",
+      "given": "A repeated Context request adds no content or exceeds the approved Context profile.",
+      "when": "Context recovery evaluates the request.",
+      "expected": "Deny or summarize without another source charge and without blocking unrelated safe progress."
+    },
+    {
+      "scenario_id": "P2-MAP-001",
+      "class": "system_map_recovery",
+      "failure_class": "system_map_unavailable",
+      "given": "The required actual-only System Map area is partial or unavailable.",
+      "when": "Impact discovery executes.",
+      "expected": "Use bounded live-source fallback for the affected area and record which fallback facts were consumed."
+    },
+    {
+      "scenario_id": "P2-MAP-002",
+      "class": "map_authority",
+      "failure_class": "system_map_unavailable",
+      "given": "A Map result or fallback discovers a new node outside predicted impact.",
+      "when": "Recovery projection is rebuilt.",
+      "expected": "Treat the result as an impact fact only; it grants no write, acceptance, risk or completion authority."
+    },
+    {
+      "scenario_id": "P2-STALE-001",
+      "class": "candidate_staleness",
+      "failure_class": "candidate_stale",
+      "given": "An Agent or runner result targets an older Candidate generation.",
+      "when": "Recovery admission executes.",
+      "expected": "Reject the stale result before completion and create or select the current Candidate generation."
+    },
+    {
+      "scenario_id": "P2-STALE-002",
+      "class": "test_asset_staleness",
+      "failure_class": "test_asset_stale",
+      "given": "A previously admitted test asset no longer matches its content, fixture or Candidate validity inputs.",
+      "when": "Verification Subject construction executes.",
+      "expected": "Reject historical PASS, re-evaluate validity and require a current admitted asset identity."
+    },
+    {
+      "scenario_id": "P2-IMPACT-001",
+      "class": "impact_reconciliation",
+      "failure_class": "impact_underestimated",
+      "given": "Actual diff or a failed scenario identifies a reverse dependent outside initial verification closure.",
+      "when": "Impact recovery executes.",
+      "expected": "Expand read and verification closure automatically while preserving the exact write scope."
+    },
+    {
+      "scenario_id": "P2-SCOPE-001",
+      "class": "scope_exception",
+      "failure_class": "scope_expansion_required",
+      "given": "Passing fixed acceptance requires modifying a reverse dependent outside current write scope.",
+      "when": "A repair route is selected.",
+      "expected": "Preserve Candidate and diff, stop affected work and emit a versioned scope-revision request."
+    },
+    {
+      "scenario_id": "P2-EXTERNAL-001",
+      "class": "external_boundary",
+      "failure_class": "external_side_effect_uncertain",
+      "given": "A proposed recovery would access a real network, credential, database, deployment or publication target.",
+      "when": "Recovery routing evaluates the action.",
+      "expected": "Do not execute or retry and route to the independent external high-risk boundary."
+    },
+    {
+      "scenario_id": "P2-BUNDLE-001",
+      "class": "failure_bundle",
+      "failure_class": "product_failed",
+      "given": "A verification failure includes scenario, Candidate, Subject, asset, impact and diagnostic facts.",
+      "when": "Failure Bundle construction executes.",
+      "expected": "Publish exact typed identities, allowed actions, remaining budget and bounded useful diagnostics."
+    },
+    {
+      "scenario_id": "P2-BUNDLE-002",
+      "class": "output_hygiene",
+      "failure_class": "runner_failed",
+      "given": "One million repeated traceback lines, duplicate scenario IDs and multibyte output are observed.",
+      "when": "Failure Bundle construction executes.",
+      "expected": "Retain one useful bounded excerpt, explicit truncation counts and no complete raw corpus."
+    },
+    {
+      "scenario_id": "P2-RETRY-001",
+      "class": "no_progress",
+      "failure_class": "product_failed",
+      "given": "Inputs, Candidate, asset, environment, strategy and failure fingerprint are identical with no new evidence.",
+      "when": "Another attempt is requested.",
+      "expected": "Reject before Agent or runner execution and emit one no_progress disposition without additional attempt charge."
+    },
+    {
+      "scenario_id": "P2-RETRY-002",
+      "class": "progress",
+      "failure_class": "product_failed",
+      "given": "A relevant source delta or different approved strategy changes one progress dimension while budget remains.",
+      "when": "Another repair attempt is requested.",
+      "expected": "Admit the new generation and retain already consumed recovery budget."
+    },
+    {
+      "scenario_id": "P2-BUDGET-001",
+      "class": "budget_exception",
+      "failure_class": "runner_failed",
+      "given": "The applicable recovery budget has no remaining approved action.",
+      "when": "A new attempt is requested.",
+      "expected": "Do not weaken required verification; preserve Candidate and report attempts, evidence, gap and bounded options."
+    },
+    {
+      "scenario_id": "P2-EXCEPTION-001",
+      "class": "structured_exception",
+      "failure_class": "scope_expansion_required",
+      "given": "An authority-bearing boundary blocks the affected lane.",
+      "when": "Exception reporting executes.",
+      "expected": "Bind current and requested authority, evidence, affected nodes, attempted actions, preserved artifacts and unaffected work."
+    },
+    {
+      "scenario_id": "P2-EXCEPTION-002",
+      "class": "exception_authority",
+      "failure_class": "test_semantics_uncertain",
+      "given": "A structured exception report exists.",
+      "when": "Execution considers resuming.",
+      "expected": "Keep the lane blocked until a newly confirmed authority source exists; the report itself is not approval."
+    },
+    {
+      "scenario_id": "P2-SAFETY-001",
+      "class": "workspace_safety",
+      "failure_class": "runner_failed",
+      "given": "Recovery cleanup fails while the user workspace contains unrelated dirty changes.",
+      "when": "The safe route is exhausted.",
+      "expected": "Preserve the user workspace byte-identically, retain useful Candidate diff and emit a bounded exception."
+    },
+    {
+      "scenario_id": "P2-STATE-001",
+      "class": "restart",
+      "failure_class": "candidate_stale",
+      "given": "The process restarts after a route decision but before its next generation completes.",
+      "when": "Recovery state is reconstructed.",
+      "expected": "Resume idempotently from canonical identities without duplicating attempts or accepting stale results."
+    },
+    {
+      "scenario_id": "P2-COMPLETION-001",
+      "class": "completion",
+      "failure_class": "test_asset_stale",
+      "given": "A stale PASS or open authority, budget, platform or external exception remains.",
+      "when": "Completion Judge evaluates the Work Package.",
+      "expected": "Refuse work_package_completed and keep higher-layer completion not_evaluated."
+    },
+    {
+      "scenario_id": "P2-STRESS-001",
+      "class": "stress",
+      "failure_class": "candidate_stale",
+      "given": "Ten thousand duplicate, stale and out-of-order observations target one serial execution lane.",
+      "when": "Classification and routing execute.",
+      "expected": "Produce one deterministic current route with bounded memory, bounded diagnostics and zero Agent tokens for mechanical filtering."
+    }
+  ]
+}

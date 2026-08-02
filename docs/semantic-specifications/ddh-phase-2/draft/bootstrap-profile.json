@@ -1,0 +1,99 @@
+{
+  "profile_id": "DDH-P2-BOOTSTRAP-001",
+  "version": "1.0.0",
+  "specification": "DDH-P2-SPEC-001@1.0.0",
+  "runtime_mode": "single_main_agent_serial",
+  "budget_source_priority": [
+    "task_specification_explicit",
+    "approved_project_profile",
+    "calibrated_bootstrap"
+  ],
+  "budgets": {
+    "agent_model_usage": {
+      "ceiling_source": "host_or_task_required",
+      "minimum_unallocated_reserve_ratio": 0.15,
+      "unobservable_usage_label": "estimated",
+      "identical_no_progress_retry_limit": 0
+    },
+    "context_ingestion": {
+      "initial_envelope_max_ratio": 0.15,
+      "cumulative_full_source_default_max_ratio": 0.30,
+      "single_expansion_max_ratio": 0.05,
+      "reasoning_tool_output_reserve_min_ratio": 0.50,
+      "maximum_context_request_rounds_per_candidate": 4
+    },
+    "work_package_wall_time": {
+      "ceiling_source": "task_or_host_required",
+      "budget_exhaustion_outcome": "budget_exhausted"
+    },
+    "verification_execution": {
+      "adaptive_timeout_safety_factor": 2.0,
+      "startup_margin_seconds": 30,
+      "unknown_duration_hard_deadline_seconds": 600,
+      "termination_and_output_drain_grace_seconds": 30,
+      "no_progress_minimum_seconds": 120,
+      "no_progress_requires_trusted_activity_signal": true,
+      "silent_output_is_not_hang": true,
+      "retained_stdout_bytes": 65536,
+      "retained_stderr_bytes": 65536
+    },
+    "recovery_attempts": {
+      "identical_attempt_limit": 0,
+      "transient_infrastructure_recovery_action_limit": 2,
+      "equivalent_backend_attempt_limit_per_backend": 1,
+      "new_evidence_does_not_reset_consumed_budget": true,
+      "safe_routes_exhausted_outcome": "no_progress_or_structured_exception"
+    },
+    "failure_bundle": {
+      "maximum_total_bytes": 32768,
+      "maximum_traceback_excerpt_bytes": 8192,
+      "maximum_stdout_excerpt_bytes": 4096,
+      "maximum_stderr_excerpt_bytes": 4096,
+      "maximum_failed_scenario_references": 100,
+      "maximum_affected_resource_references": 1000,
+      "maximum_attempt_summaries": 64
+    },
+    "stress_execution": {
+      "required_observation_count": 10000,
+      "synthetic_repeated_traceback_lines": 1000000,
+      "permanent_corpus_required": false,
+      "hard_deadline_seconds": 600
+    }
+  },
+  "progress_dimensions": [
+    "candidate_generation",
+    "test_asset_generation",
+    "environment_generation",
+    "context_generation",
+    "impact_generation",
+    "approved_strategy"
+  ],
+  "required_platforms": [
+    {
+      "os": "windows-11",
+      "architecture": "x86_64",
+      "python": "3.13"
+    },
+    {
+      "os": "ubuntu-24.04",
+      "architecture": "x86_64",
+      "python": "3.13"
+    }
+  ],
+  "latest_stable_python": {
+    "required_for_completion": true,
+    "version_resolved_by_ci": true
+  },
+  "external_operation_budget": 0,
+  "forbidden_recovery_tradeoffs": [
+    "change_expected_behavior",
+    "remove_required_scenario",
+    "weaken_oracle",
+    "lower_required_threshold",
+    "expand_write_scope",
+    "increase_user_budget",
+    "invent_backend_or_policy",
+    "grant_external_authority",
+    "mutate_user_workspace"
+  ]
+}

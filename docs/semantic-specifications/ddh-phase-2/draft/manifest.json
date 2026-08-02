@@ -1,0 +1,63 @@
+{
+  "manifest_schema_version": "1.0.0",
+  "specification_id": "DDH-P2-SPEC-001",
+  "version": "1.0.0",
+  "status": "ready_for_confirmation",
+  "implementation_authority": "none_until_exact_human_confirmation",
+  "risk_class": "L2",
+  "runtime_mode": "single_main_agent_serial",
+  "parallel_runtime": "deferred_to_phase_3",
+  "architecture_scope": "DDH runtime automatic recovery and exception routing",
+  "phase1_baseline_commit": "8ceb4a73389df03eb2ac8cce7c24f8ebc37f9f71",
+  "authority_root": true,
+  "goal_source": "goal.md",
+  "acceptance_source": "acceptance-scenarios.json",
+  "bootstrap_profile": "bootstrap-profile.json",
+  "implementation_boundary": "implementation-boundary.md",
+  "reference_workload": "reference-recovery-fixture.md",
+  "assets": [
+    {
+      "path": "goal.md",
+      "sha256": "2ed27c6fa6079b8ee9ac296afc59b8bb6a3b8940c183d2992c713b0d3df05857"
+    },
+    {
+      "path": "runtime-requirements.md",
+      "sha256": "1af72ad322c0a598d387bd4d812d8961502ff35b0afc418d7f5cb7c17bf7e337"
+    },
+    {
+      "path": "implementation-boundary.md",
+      "sha256": "a9f90efd2739a5597ef1fd592c5a5be4c24b8f05856c957a0bc2b940b2f52065"
+    },
+    {
+      "path": "reference-recovery-fixture.md",
+      "sha256": "9b18064678d0467fd2f5f3951df4cafeb68ead65787b186e81efe349b84e907d"
+    },
+    {
+      "path": "acceptance-scenarios.json",
+      "sha256": "4d9bc0c20f30533bf40c5b6f4c3a3fe1a5542a3f65e890b2b1900444b37fc5b2"
+    },
+    {
+      "path": "bootstrap-profile.json",
+      "sha256": "81f1e23d79ab1e194358cd29aa4e9268972759e22a654bf7dfea809764bc9389"
+    },
+    {
+      "path": "validation/validate_phase2_spec.py",
+      "sha256": "978c93a67dfc21878185b0cc6d0ca7261c2a41747e5ba13064926deef4acd1b7"
+    }
+  ],
+  "closure_digest_algorithm": "sha256",
+  "closure_digest_input": "UTF-8 lines sorted by path, each formatted as path:sha256",
+  "closure_digest": "e0c0edab20ecdc3ec888ba15dcbd03d9e21d11c9037a376db9dc03a214a87f5e",
+  "confirmation": {
+    "required": true,
+    "required_phrase_target": "DDH-P2-SPEC-001@1.0.0 plus closure_digest",
+    "confirmed": false
+  },
+  "external_side_effects": "prohibited",
+  "higher_layer_completion": [
+    "subsystem_integrated",
+    "domain_accepted",
+    "release_candidate"
+  ],
+  "higher_layer_completion_outcome": "not_evaluated"
+}

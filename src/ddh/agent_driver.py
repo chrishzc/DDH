@@ -5,6 +5,7 @@ from typing import Protocol
 
 from ddh.context import ContextEnvelope, ContextRequest
 from ddh.contracts import AuthorityReference, ContractError, content_digest
+from ddh.failure import FailureBundle
 
 
 @dataclass(frozen=True)
@@ -26,6 +27,7 @@ class WorkRequest:
     prohibitions: tuple[str, ...] = ()
     budgets: dict[str, object] = field(default_factory=dict)
     escalation_conditions: tuple[str, ...] = ()
+    failure_bundle: FailureBundle | None = None
 
 
 @dataclass(frozen=True)
@@ -63,6 +65,8 @@ class AgentResultValidator:
             "isolated_candidate",
             "context_request",
             "scope_change_required",
+            "test_semantics_uncertain",
+            "external_side_effect_uncertain",
             "implementation_blocked",
             "cancelled",
         }:

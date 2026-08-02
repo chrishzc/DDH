@@ -163,6 +163,22 @@ class ContextTests(unittest.TestCase):
         self.assertEqual("denied_duplicate", disposition.outcome)
         self.assertEqual(envelope.charged_tokens, disposition.envelope.charged_tokens)
 
+    def test_context_identity_binds_content_not_only_selector(self) -> None:
+        impact = ImpactResolver(
+            StaticSystemMapAdapter(map_result("usable_actual")),
+            StaticLiveSourceAdapter(map_result("usable_actual")),
+        ).resolve(MapQuery("repository", "main", "commit-1", (), "scope"))
+        curator = ContextCurator(1000)
+        first = curator.materialize(
+            (ContextItem("goal", "first", "implementation"),),
+            impact,
+        )
+        second = curator.materialize(
+            (ContextItem("goal", "other", "implementation"),),
+            impact,
+        )
+        self.assertNotEqual(first.digest, second.digest)
+
     def test_ten_thousand_unrelated_records_are_not_ingested(self) -> None:
         impact = ImpactResolver(
             StaticSystemMapAdapter(map_result("usable_actual")),

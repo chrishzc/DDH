@@ -149,8 +149,16 @@ class ContextCurator:
     ) -> ContextEnvelope:
         identity = {
             "generation": generation,
-            "selectors": [item.selector for item in items],
+            "items": [
+                {
+                    "selector": item.selector,
+                    "purpose": item.purpose,
+                    "content_digest": content_digest(item.content),
+                }
+                for item in items
+            ],
             "map_facts": map_facts,
+            "charged_tokens": charged_tokens,
         }
         return ContextEnvelope(
             generation,

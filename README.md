@@ -15,9 +15,12 @@ DDH（repository 歷史名稱 ADHD）是 ADAD 的全新世代，不是在 legacy
 
 Phase 0 `Executable Contract Fixtures` 現行規格包
 `DDH-P0-SPEC-001@1.1.0` 已於 2026-08-02 完成；`1.0.0` 僅保留於歷史封存。
-Phase 1 `DDH-P1-SPEC-001@1.0.0` 已取得 exact human confirmation，Python
-reference runtime 已完成本機施工與 Windows／Python 3.14 驗證。規格要求的
-Windows／Ubuntu Python 3.13 與 latest-stable matrix 尚未執行，因此目前不宣告
+Phase 1 `DDH-P1-SPEC-001@1.0.0` 已完成 reference runtime 與要求的 CI
+平台驗證。
+
+Phase 2 `DDH-P2-SPEC-001@1.0.0` 已取得 exact human confirmation，目前已完成
+本機 reference implementation 與規格場景驗證；仍須通過 Windows 11、
+Ubuntu 24.04／Python 3.13 及 latest-stable CI matrix，才宣告 Phase 2
 `work_package_completed`。
 
 Phase 1 建立的範圍包括：
@@ -27,6 +30,15 @@ Phase 1 建立的範圍包括：
   Runner、Completion Judge與portable Candidate Bundle。
 - thin local confirmation CLI。
 - unit、contract、integration與portable workspace verification。
+
+Phase 2 新增：
+
+- 12 類確定性 failure classification 與有界、去敏的 Failure Bundle。
+- progress／budget-aware automatic recovery 與結構化例外報告。
+- disposable runner rebuild 與僅限明確核准的 equivalent backend fallback。
+- actual impact 驅動的驗證擴張，但不隱性擴大 write scope。
+- 分離的 test repair proposal、機械 known-bad probe 與 independent admission。
+- Invocation recovery checkpoint 與同一規格下的冪等重啟。
 
 仍不建立 System Map backend、legacy Task／Source Lock／Checkpoint、長期
 provenance、真實 external provider、deployment或release操作。
@@ -50,7 +62,7 @@ System Map 尚未完全落地；Bundle schema、狀態、API、currentness 與�
 - 由語意規格與風險共同決定的分層驗證。
 - 可選的 Dogfood、Adoption 與 Release 流程。
 
-多代理分區與精準子代理 Context Envelope 屬後續 Phase，不在 Phase 1 runtime。
+多代理分區與精準子代理 Context Envelope 屬後續 Phase，不在 Phase 2 runtime。
 
 ## Legacy 邊界
 

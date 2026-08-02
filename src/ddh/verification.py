@@ -8,6 +8,7 @@ import tempfile
 import time
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Protocol
 
 from ddh.contracts import CandidateReference, ContractError
 from ddh.test_auditor import VerificationAsset
@@ -40,6 +41,80 @@ class VerificationResult:
     stdout: str
     stderr: str
     output_truncated: bool
+
+
+class VerificationExecutorPort(Protocol):
+    def run(self, plan: ExecutionPlan) -> VerificationResult: ...
+
+
+BACKEND_CAPABILITY_STATES = {
+    "configured",
+    "available",
+    "self_checked",
+    "ready",
+    "unhealthy",
+    "incompatible",
+}
+
+
+@dataclass(frozen=True)
+class VerificationBackend:
+    backend_id: str
+    equivalence_class: str
+    capability_state: str
+    executor: VerificationExecutorPort
+
+    @property
+    def ready(self) -> bool:
+        return self.capability_state == "ready"
+
+
+class VerificationBackendRegistry:
+    def __init__(
+        self,
+        backends: tuple[VerificationBackend, ...],
+        default_backend_id: str,
+    ) -> None:
+        if not backends:
+            raise ContractError("verification_backend_missing")
+        identities = [backend.backend_id for backend in backends]
+        if len(identities) != len(set(identities)):
+            raise ContractError("verification_backend_duplicate")
+        if any(
+            backend.capability_state not in BACKEND_CAPABILITY_STATES
+            for backend in backends
+        ):
+            raise ContractError("verification_backend_state_invalid")
+        self._backends = {backend.backend_id: backend for backend in backends}
+        if default_backend_id not in self._backends:
+            raise ContractError("verification_default_backend_missing")
+        self._default_backend_id = default_backend_id
+
+    @property
+    def default_backend_id(self) -> str:
+        return self._default_backend_id
+
+    @property
+    def backend_ids(self) -> tuple[str, ...]:
+        return tuple(sorted(self._backends))
+
+    def backend(self, backend_id: str) -> VerificationBackend:
+        try:
+            return self._backends[backend_id]
+        except KeyError as error:
+            raise ContractError("verification_backend_unknown") from error
+
+    def ready_equivalent_backends(self, backend_id: str) -> tuple[str, ...]:
+        current = self.backend(backend_id)
+        return tuple(
+            sorted(
+                backend.backend_id
+                for backend in self._backends.values()
+                if backend.ready
+                and backend.backend_id != backend_id
+                and backend.equivalence_class == current.equivalence_class
+            )
+        )
 
 
 class PytestAdapter:

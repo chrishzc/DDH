@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Protocol
 
 from ddh.contracts import CandidateReference, ContractError, content_digest
 
@@ -60,6 +61,42 @@ class AssetAdmission:
     outcome: str
     reason_code: str
     independently_admitted: bool
+
+
+@dataclass(frozen=True)
+class TestRepairRequest:
+    baseline: VerificationAsset | None
+    rejected_asset: VerificationAsset
+    required_scenarios: tuple[str, ...]
+    rejection_reason: str
+
+
+@dataclass(frozen=True)
+class TestRepairProposal:
+    asset: VerificationAsset
+    proposer_identity: str
+
+
+class TestRepairPort(Protocol):
+    def repair(self, request: TestRepairRequest) -> TestRepairProposal: ...
+
+
+@dataclass(frozen=True)
+class TestRepairEvidence:
+    asset_digest: str
+    original_scenario_ids: tuple[str, ...]
+    known_bad_probe_ids: tuple[str, ...]
+    original_scenarios_passed: bool
+    known_bad_product_rejected: bool
+    verifier_identity: str
+
+
+class TestRepairProbePort(Protocol):
+    def verify(
+        self,
+        asset: VerificationAsset,
+        original_scenarios: tuple[str, ...],
+    ) -> TestRepairEvidence: ...
 
 
 class TestAuditor:
@@ -128,6 +165,89 @@ class TestAuditor:
             raise ContractError("verification_asset_repair_probe_required")
         if not set(proposed.known_bad_probes).issubset(proposed.cases):
             raise ContractError("verification_asset_repair_probe_not_executed")
+
+
+class TestRepairCoordinator:
+    def __init__(
+        self,
+        auditor: TestAuditor,
+        repair_port: TestRepairPort,
+        probe_port: TestRepairProbePort,
+        admission_identity: str = "independent-test-admission",
+    ) -> None:
+        self._auditor = auditor
+        self._repair_port = repair_port
+        self._probe_port = probe_port
+        self._admission_identity = admission_identity
+
+    def admit(
+        self,
+        baseline: VerificationAsset | None,
+        proposed: VerificationAsset,
+        required_scenarios: tuple[str, ...],
+    ) -> AssetAdmission:
+        try:
+            return self._auditor.audit(
+                baseline,
+                proposed,
+                required_scenarios,
+                independent_reviewer=True,
+            )
+        except ContractError as error:
+            request = TestRepairRequest(
+                baseline,
+                proposed,
+                required_scenarios,
+                str(error),
+            )
+        repair = self._repair_port.repair(request)
+        evidence = self._probe_port.verify(
+            repair.asset,
+            proposed.scenario_ids,
+        )
+        self._validate_separation(
+            repair,
+            evidence,
+            proposed.scenario_ids,
+        )
+        return self._auditor.audit(
+            baseline,
+            repair.asset,
+            required_scenarios,
+            independent_reviewer=True,
+        )
+
+    def _validate_separation(
+        self,
+        repair: TestRepairProposal,
+        evidence: TestRepairEvidence,
+        original_scenarios: tuple[str, ...],
+    ) -> None:
+        if not repair.proposer_identity:
+            raise ContractError("test_repair_proposer_identity_missing")
+        if repair.proposer_identity == self._admission_identity:
+            raise ContractError("test_repair_self_admission_prohibited")
+        if not evidence.verifier_identity:
+            raise ContractError("test_repair_verifier_identity_missing")
+        if evidence.verifier_identity in {
+            repair.proposer_identity,
+            self._admission_identity,
+        }:
+            raise ContractError("test_repair_probe_independence_required")
+        if evidence.asset_digest != repair.asset.digest:
+            raise ContractError("test_repair_probe_asset_mismatch")
+        if not evidence.original_scenarios_passed:
+            raise ContractError("test_repair_original_scenario_replay_required")
+        if not evidence.known_bad_product_rejected:
+            raise ContractError("test_repair_known_bad_probe_required")
+        if not set(original_scenarios).issubset(
+            evidence.original_scenario_ids
+        ):
+            raise ContractError("test_repair_required_scenario_missing")
+        if not set(repair.asset.known_bad_probes).issubset(
+            evidence.known_bad_probe_ids
+        ):
+            raise ContractError("test_repair_known_bad_probe_not_executed")
 
 
 def _duration_profile(

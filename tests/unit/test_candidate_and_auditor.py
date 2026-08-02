@@ -5,7 +5,13 @@ from pathlib import Path
 
 from ddh.candidate import AdmissionRejected, CandidateController
 from ddh.contracts import CandidateReference, ContractError
-from ddh.test_auditor import TestAuditor, VerificationAsset
+from ddh.test_auditor import (
+    TestAuditor,
+    TestRepairCoordinator as DdhTestRepairCoordinator,
+    TestRepairEvidence as DdhTestRepairEvidence,
+    TestRepairProposal as DdhTestRepairProposal,
+    VerificationAsset,
+)
 
 
 def asset(
@@ -193,6 +199,91 @@ class TestAuditorTests(unittest.TestCase):
                         ("PATH-001",),
                         independent_reviewer=True,
                     )
+
+    def test_independent_repair_route_replays_and_readmits(self) -> None:
+        baseline = asset(self.candidate)
+        rejected = asset(
+            self.candidate,
+            assertions=("canonical path matches", "new oracle"),
+        )
+        repaired = asset(
+            self.candidate,
+            assertions=("canonical path matches", "new oracle"),
+            cases=(
+                "windows_separator",
+                "workspace_escape",
+                "known_bad_escape",
+            ),
+            known_bad_probes=("known_bad_escape",),
+        )
+
+        class RepairPort:
+            def repair(self, request):
+                self.request = request
+                return DdhTestRepairProposal(
+                    repaired,
+                    "test-repair-proposer",
+                )
+
+        class ProbePort:
+            def verify(self, proposed, original_scenarios):
+                return DdhTestRepairEvidence(
+                    proposed.digest,
+                    original_scenarios,
+                    proposed.known_bad_probes,
+                    True,
+                    True,
+                    "mechanical-probe-runner",
+                )
+
+        port = RepairPort()
+        admission = DdhTestRepairCoordinator(
+            self.auditor,
+            port,
+            ProbePort(),
+        ).admit(
+            baseline,
+            rejected,
+            ("PATH-001",),
+        )
+        self.assertEqual("admitted", admission.outcome)
+        self.assertEqual(
+            "verification_asset_repair_probe_required",
+            port.request.rejection_reason,
+        )
+
+    def test_test_repair_cannot_admit_itself(self) -> None:
+        proposed = asset(self.candidate)
+
+        class RepairPort:
+            def repair(self, request):
+                return DdhTestRepairProposal(
+                    proposed,
+                    "independent-test-admission",
+                )
+
+        class ProbePort:
+            def verify(self, proposed, original_scenarios):
+                return DdhTestRepairEvidence(
+                    proposed.digest,
+                    original_scenarios,
+                    (),
+                    True,
+                    True,
+                    "mechanical-probe-runner",
+                )
+
+        coordinator = DdhTestRepairCoordinator(
+            self.auditor,
+            RepairPort(),
+            ProbePort(),
+        )
+        invalid = replace(proposed, scenario_ids=("UNKNOWN",))
+        with self.assertRaisesRegex(
+            ContractError,
+            "test_repair_self_admission_prohibited",
+        ):
+            coordinator.admit(None, invalid, ("PATH-001",))
 
 
 if __name__ == "__main__":

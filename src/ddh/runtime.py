@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import shutil
 import tempfile
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from pathlib import Path
 from typing import Protocol
 from uuid import uuid4
@@ -28,8 +28,26 @@ from ddh.context import (
     ContextItem,
     ContextSourcePort,
 )
-from ddh.contracts import CandidateReference, ContractError
-from ddh.recovery import AttemptFingerprint, RecoveryController
+from ddh.contracts import AuthorityReference, CandidateReference, ContractError, content_digest
+from ddh.failure import (
+    DiagnosticExcerpt,
+    ExceptionReport,
+    FailureBundle,
+    FailureBundleBuilder,
+    FailureClassifier,
+    FailureObservation,
+    FailureProgress,
+)
+from ddh.recovery import (
+    AttemptFingerprint,
+    ProgressIdentity,
+    RecoveryController,
+    RecoveryLedger,
+    RecoveryPolicy,
+    RecoveryRoute,
+    RecoveryRouteRequest,
+    RecoveryRouter,
+)
 from ddh.specification import (
     ConfirmationRecord,
     SpecificationCompiler,
@@ -38,12 +56,22 @@ from ddh.specification import (
 from ddh.state import AtomicJsonStateStore, InvocationState
 from ddh.system_map import ImpactClosure, ImpactResolver, MapQuery
 from ddh.telemetry import JsonlTelemetry, TelemetryEvent
-from ddh.test_auditor import AssetAdmission, TestAuditor, VerificationAsset
+from ddh.test_auditor import (
+    AssetAdmission,
+    TestAuditor,
+    TestRepairCoordinator,
+    TestRepairPort,
+    TestRepairProbePort,
+    VerificationAsset,
+)
 from ddh.verification import (
     FixedCommandAdapter,
     PytestAdapter,
     VerificationResult,
     VerificationRunner,
+    VerificationBackend,
+    VerificationBackendRegistry,
+    VerificationExecutorPort,
     adaptive_timeout_seconds,
 )
 
@@ -55,6 +83,14 @@ class VerificationAssetProvider(Protocol):
     ) -> tuple[tuple[VerificationAsset | None, VerificationAsset], ...]: ...
 
 
+class ImpactAwareVerificationAssetProvider(Protocol):
+    def build_for_impact(
+        self,
+        candidate: FrozenCandidate,
+        impact: ImpactClosure,
+    ) -> tuple[tuple[VerificationAsset | None, VerificationAsset], ...]: ...
+
+
 @dataclass(frozen=True)
 class RuntimeOutcome:
     invocation_id: str
@@ -63,15 +99,7 @@ class RuntimeOutcome:
     results: tuple[VerificationResult, ...]
     bundle_path: Path | None
     exception_report: ExceptionReport | None = None
-
-
-@dataclass(frozen=True)
-class ExceptionReport:
-    reason_code: str
-    requested_paths: tuple[str, ...]
-    current_write_scope: tuple[str, ...]
-    evidence: tuple[str, ...]
-    allowed_next_steps: tuple[str, ...]
+    failure_bundle: FailureBundle | None = None
 
 
 @dataclass(frozen=True)
@@ -92,6 +120,12 @@ class _ExecutionSession:
     specification: WorkloadSpecification
     context: ContextEnvelope
     request: RuntimeRequest
+    failure_bundle: FailureBundle | None = None
+    attempt: int = 0
+    attempted_routes: tuple[str, ...] = ()
+    last_failed_candidate: FrozenCandidate | None = None
+    last_failed_results: tuple[VerificationResult, ...] = ()
+    state_store: AtomicJsonStateStore | None = None
 
 
 @dataclass(frozen=True)
@@ -99,6 +133,7 @@ class _CandidateEvidence:
     impact: ImpactClosure
     admissions: tuple[AssetAdmission, ...]
     results: tuple[VerificationResult, ...]
+    failure_bundles: tuple[FailureBundle, ...] = ()
 
 
 class Phase1Runtime:
@@ -135,6 +170,7 @@ class Phase1Runtime:
         if restored is not None:
             return restored
         session = self._start_session(invocation_id, specification, request)
+        session.state_store = state_store
         self._record_started(state_store, session, existing)
         outcome = self._attempt_loop(session)
         self._record_terminal(
@@ -359,6 +395,7 @@ class Phase1Runtime:
                 "scope_change",
                 "external_side_effect",
             ),
+            failure_bundle=session.failure_bundle,
         )
 
     def _resolve_agent_result(
@@ -634,6 +671,7 @@ class Phase1Runtime:
         self,
         candidate: FrozenCandidate,
         admission: AssetAdmission,
+        executor: VerificationExecutorPort | None = None,
     ) -> VerificationResult:
         with tempfile.TemporaryDirectory() as directory:
             runner_root = Path(directory) / "subject"
@@ -646,7 +684,7 @@ class Phase1Runtime:
             )
             adapter = self._verification_adapter(asset)
             plan = adapter.build_plan(asset, runner_root, timeout)
-            return self._runner.run(plan)
+            return (executor or self._runner).run(plan)
 
     def _verification_adapter(
         self,
@@ -765,6 +803,8 @@ class Phase1Runtime:
         invocation_id: str,
         report: ExceptionReport,
         candidate: FrozenCandidate | None = None,
+        failure_bundle: FailureBundle | None = None,
+        results: tuple[VerificationResult, ...] = (),
     ) -> RuntimeOutcome:
         decision = CompletionDecision(
             "blocked",
@@ -778,9 +818,10 @@ class Phase1Runtime:
             invocation_id,
             decision,
             candidate,
-            (),
+            results,
             None,
             report,
+            failure_bundle,
         )
 
     def _no_progress(
@@ -815,6 +856,1152 @@ class Phase1Runtime:
         )
 
 
+class Phase2Runtime(Phase1Runtime):
+    def __init__(
+        self,
+        impact_resolver: ImpactResolver,
+        agent_driver: AgentDriverPort,
+        asset_provider: VerificationAssetProvider,
+        telemetry: JsonlTelemetry,
+        context_source: ContextSourcePort | None = None,
+        isolated_candidate_capability: IsolatedCandidateCapabilityPort | None = None,
+        backend_registry: VerificationBackendRegistry | None = None,
+        recovery_policy: RecoveryPolicy | None = None,
+        impact_asset_provider: ImpactAwareVerificationAssetProvider | None = None,
+        test_repair_port: TestRepairPort | None = None,
+        test_repair_probe_port: TestRepairProbePort | None = None,
+    ) -> None:
+        super().__init__(
+            impact_resolver,
+            agent_driver,
+            asset_provider,
+            telemetry,
+            context_source,
+            isolated_candidate_capability,
+        )
+        self._failure_builder = FailureBundleBuilder()
+        self._failure_classifier = FailureClassifier()
+        self._backend_registry = backend_registry or VerificationBackendRegistry(
+            (
+                VerificationBackend(
+                    "local-process",
+                    "local-process",
+                    "ready",
+                    self._runner,
+                ),
+            ),
+            "local-process",
+        )
+        self._recovery_policy = recovery_policy or RecoveryPolicy(
+            approved_backends=self._backend_registry.backend_ids,
+        )
+        self._impact_asset_provider = impact_asset_provider
+        self._test_repair = (
+            TestRepairCoordinator(
+                self._auditor,
+                test_repair_port,
+                test_repair_probe_port,
+            )
+            if (
+                test_repair_port is not None
+                and test_repair_probe_port is not None
+            )
+            else None
+        )
+
+    def _start_session(
+        self,
+        invocation_id: str,
+        specification: WorkloadSpecification,
+        request: RuntimeRequest,
+    ) -> _ExecutionSession:
+        existing = AtomicJsonStateStore(
+            request.invocation_root / "state"
+        ).load(invocation_id)
+        if (
+            existing is not None
+            and existing.payload.get("stage") == "recovery_pending"
+        ):
+            context = _restore_context(existing.payload["context"])
+            return _ExecutionSession(
+                invocation_id,
+                specification,
+                context,
+                request,
+            )
+        return super()._start_session(
+            invocation_id,
+            specification,
+            request,
+        )
+
+    def _attempt_loop(self, session: _ExecutionSession) -> RuntimeOutcome:
+        current_source = session.request.source_root
+        router = RecoveryRouter(self._recovery_policy)
+        observed_candidates: dict[str, int] = {}
+        max_attempts = int(session.specification.budgets.get("agent_attempts", 3))
+        start_attempt = 1
+        restored = self._restore_recovery_checkpoint(session)
+        if restored is not None:
+            current_source, router, start_attempt = restored
+            if start_attempt > max_attempts:
+                return self._route_terminal(
+                    session,
+                    RuntimeOutcome(
+                        session.invocation_id,
+                        CompletionDecision(
+                            "blocked",
+                            "undetermined",
+                            "incomplete",
+                            "recovery_budget_exhausted",
+                            False,
+                        ),
+                        session.last_failed_candidate,
+                        session.last_failed_results,
+                        None,
+                        failure_bundle=session.failure_bundle,
+                    ),
+                    RecoveryRoute(
+                        "exception",
+                        "recovery_budget_exhausted",
+                        "preserve_and_report",
+                        False,
+                        True,
+                        required_authority=("budget_increase",),
+                    ),
+                )
+        for attempt in range(start_attempt, max_attempts + 1):
+            session.attempt = attempt
+            outcome = self._run_attempt(session, attempt, current_source)
+            if outcome.completion.work_package_completed:
+                return outcome
+            outcome = self._ensure_failure_bundle(session, outcome)
+            if outcome.candidate is not None:
+                session.last_failed_candidate = outcome.candidate
+                session.last_failed_results = outcome.results
+            route = self._route_for_outcome(
+                session,
+                outcome,
+                router,
+                observed_candidates,
+                max_attempts - attempt,
+            )
+            if route is None:
+                return outcome
+            self._emit(
+                session.invocation_id,
+                "recovery_route_selected",
+                route.reason_code,
+            )
+            if route.may_continue:
+                session.failure_bundle = outcome.failure_bundle
+                session.attempted_routes += (route.action,)
+                if (
+                    route.action == "repair_product_in_scope"
+                    and outcome.candidate is not None
+                ):
+                    current_source = outcome.candidate.root
+                self._record_recovery_checkpoint(
+                    session,
+                    outcome,
+                    router,
+                    current_source,
+                    attempt + 1,
+                )
+                continue
+            return self._route_terminal(session, outcome, route)
+        return self._route_terminal(
+            session,
+            outcome,
+            RecoveryRoute(
+                "exception",
+                "recovery_budget_exhausted",
+                "preserve_and_report",
+                False,
+                True,
+                required_authority=("budget_increase",),
+            ),
+        )
+
+    def _record_recovery_checkpoint(
+        self,
+        session: _ExecutionSession,
+        outcome: RuntimeOutcome,
+        router: RecoveryRouter,
+        current_source: Path,
+        next_attempt: int,
+    ) -> None:
+        store = session.state_store
+        if store is None:
+            return
+        current = store.load(session.invocation_id)
+        store.compare_and_swap(
+            session.invocation_id,
+            current.generation,
+            {
+                "stage": "recovery_pending",
+                "specification": session.specification.authority.digest,
+                "next_attempt": next_attempt,
+                "current_source": str(current_source),
+                "attempted_routes": session.attempted_routes,
+                "recovery_ledger": router.ledger.snapshot(),
+                "context": _serialize_context(session.context),
+                "outcome": _serialize_outcome(outcome),
+            },
+        )
+
+    def _restore_recovery_checkpoint(
+        self,
+        session: _ExecutionSession,
+    ) -> tuple[Path, RecoveryRouter, int] | None:
+        store = session.state_store
+        if store is None:
+            return None
+        current = store.load(session.invocation_id)
+        if current is None or current.payload.get("stage") != "recovery_pending":
+            return None
+        payload = current.payload
+        outcome = _restore_outcome(payload["outcome"])
+        session.failure_bundle = outcome.failure_bundle
+        session.attempted_routes = tuple(payload.get("attempted_routes", ()))
+        session.context = _restore_context(payload["context"])
+        session.last_failed_candidate = outcome.candidate
+        session.last_failed_results = outcome.results
+        ledger = RecoveryLedger.restore(payload["recovery_ledger"])
+        return (
+            Path(payload["current_source"]),
+            RecoveryRouter(self._recovery_policy, ledger),
+            int(payload["next_attempt"]),
+        )
+
+    def _admit_and_evaluate(
+        self,
+        session: _ExecutionSession,
+        controller: CandidateController,
+        result: AgentResult,
+    ) -> RuntimeOutcome:
+        try:
+            controller.admit(result.proposed_changes)
+        except AdmissionRejected as error:
+            return self._scope_admission_exception(session, error)
+        candidate = controller.freeze()
+        previous = session.last_failed_candidate
+        if (
+            previous is not None
+            and candidate.reference.digest == previous.reference.digest
+        ):
+            return self._no_progress(
+                session.invocation_id,
+                previous,
+                session.last_failed_results,
+            )
+        try:
+            controller.assert_current(candidate.reference)
+            return self._evaluate_candidate(session, controller, candidate)
+        except ContractError as error:
+            return self._candidate_exception(session, candidate, str(error))
+
+    def _collect_candidate_evidence(
+        self,
+        session: _ExecutionSession,
+        candidate: FrozenCandidate,
+    ) -> _CandidateEvidence:
+        impact = self._resolve_impact(
+            session.specification,
+            session.request,
+            self._impact_reconciliation_purpose(session),
+            candidate.changes.changed_paths,
+        )
+        proposals = self._build_phase2_proposals(candidate, impact)
+        if any(
+            proposed.candidate != candidate.reference
+            for _, proposed in proposals
+        ):
+            proposals = self._build_phase2_proposals(candidate, impact)
+        if any(
+            proposed.candidate != candidate.reference
+            for _, proposed in proposals
+        ):
+            raise ContractError("verification_asset_candidate_stale")
+        admissions = self._admit_phase2_proposals(
+            session.specification,
+            proposals,
+        )
+        results, failure_bundles = self._verify_phase2(
+            session,
+            candidate,
+            admissions,
+        )
+        return _CandidateEvidence(
+            impact,
+            admissions,
+            results,
+            failure_bundles,
+        )
+
+    def _impact_reconciliation_purpose(
+        self,
+        session: _ExecutionSession,
+    ) -> str:
+        failure = session.failure_bundle
+        if failure is None or not failure.failed_scenario_ids:
+            return "actual_delta_reconciliation"
+        scenario_projection = ",".join(failure.failed_scenario_ids)
+        return (
+            "failed_scenario_reconciliation:"
+            + scenario_projection[:480]
+        )
+
+    def _build_phase2_proposals(
+        self,
+        candidate: FrozenCandidate,
+        impact: ImpactClosure,
+    ) -> tuple[tuple[VerificationAsset | None, VerificationAsset], ...]:
+        if self._impact_asset_provider is not None:
+            return self._impact_asset_provider.build_for_impact(
+                candidate,
+                impact,
+            )
+        return self._asset_provider.build(candidate)
+
+    def _admit_phase2_proposals(
+        self,
+        specification: WorkloadSpecification,
+        proposals: tuple[
+            tuple[VerificationAsset | None, VerificationAsset],
+            ...,
+        ],
+    ) -> tuple[AssetAdmission, ...]:
+        if self._test_repair is None:
+            return tuple(
+                self._auditor.audit(
+                    baseline,
+                    proposed,
+                    _authorized_asset_scenarios(
+                        specification,
+                        baseline,
+                    ),
+                    independent_reviewer=True,
+                )
+                for baseline, proposed in proposals
+            )
+        return tuple(
+            self._test_repair.admit(
+                baseline,
+                proposed,
+                _authorized_asset_scenarios(
+                    specification,
+                    baseline,
+                ),
+            )
+            for baseline, proposed in proposals
+        )
+
+    def _complete_candidate(
+        self,
+        session: _ExecutionSession,
+        candidate: FrozenCandidate,
+        evidence: _CandidateEvidence,
+    ) -> RuntimeOutcome:
+        platform_result = next(
+            (
+                result
+                for result in evidence.results
+                if result.reason_code == "platform_blocked"
+            ),
+            None,
+        )
+        if platform_result is not None:
+            return RuntimeOutcome(
+                session.invocation_id,
+                CompletionDecision(
+                    "blocked",
+                    "undetermined",
+                    "incomplete",
+                    "platform_blocked",
+                    False,
+                ),
+                candidate,
+                evidence.results,
+                None,
+                failure_bundle=self._build_evidence_bundle(
+                    session,
+                    candidate,
+                    evidence,
+                    "platform_blocked",
+                ),
+            )
+        outcome = super()._complete_candidate(session, candidate, evidence)
+        if outcome.completion.work_package_completed:
+            return outcome
+        return replace(
+            outcome,
+            failure_bundle=self._build_evidence_bundle(
+                session,
+                candidate,
+                evidence,
+                outcome.completion.reason_code,
+            ),
+        )
+
+    def _agent_result_exception(
+        self,
+        session: _ExecutionSession,
+        result: AgentResult,
+    ) -> RuntimeOutcome | None:
+        boundary_classes = {
+            "test_semantics_uncertain": "test_semantics_uncertain",
+            "external_side_effect_uncertain": "external_side_effect_uncertain",
+        }
+        failure_class = boundary_classes.get(result.result_type)
+        if failure_class is None:
+            return super()._agent_result_exception(session, result)
+        bundle = self._failure_builder.build(
+            FailureObservation(
+                failure_class,
+                result.result_type,
+                session.specification.authority,
+                session.invocation_id,
+                affected_resources=tuple(sorted(result.proposed_changes)),
+                remaining_budget=self._remaining_agent_budget(session),
+                remaining_budgets=(
+                    (
+                        "agent_attempts",
+                        self._remaining_agent_budget(session),
+                    ),
+                ),
+                progress=FailureProgress(
+                    context_generation=session.context.generation,
+                    approved_strategy=result.result_type,
+                ),
+                external_side_effect_uncertain=(
+                    failure_class == "external_side_effect_uncertain"
+                ),
+                required_human_authority=self._required_authority(failure_class),
+            )
+        )
+        route = RecoveryRouter(self._recovery_policy).route(
+            self._route_request(bundle, session, None, 0, result.result_type)
+        )
+        empty = RuntimeOutcome(
+            session.invocation_id,
+            CompletionDecision(
+                "blocked",
+                "undetermined",
+                "incomplete",
+                result.result_type,
+                False,
+            ),
+            None,
+            (),
+            None,
+            failure_bundle=bundle,
+        )
+        return self._route_terminal(session, empty, route)
+
+    def _candidate_exception(
+        self,
+        session: _ExecutionSession,
+        candidate: FrozenCandidate,
+        reason: str,
+    ) -> RuntimeOutcome:
+        if not _is_test_asset_failure(reason):
+            return super()._candidate_exception(session, candidate, reason)
+        failure_class = (
+            "test_asset_stale"
+            if reason == "verification_asset_candidate_stale"
+            else "test_implementation_defect"
+        )
+        bundle = self._failure_builder.build(
+            FailureObservation(
+                failure_class,
+                reason,
+                session.specification.authority,
+                session.invocation_id,
+                candidate.reference,
+                failed_scenario_ids=(
+                    session.specification.acceptance_scenarios
+                ),
+                affected_resources=candidate.changes.changed_paths,
+                attempted_routes=session.attempted_routes,
+                remaining_budget=self._remaining_agent_budget(session),
+                allowed_machine_actions=self._allowed_actions(failure_class),
+                remaining_budgets=(
+                    (
+                        "agent_attempts",
+                        self._remaining_agent_budget(session),
+                    ),
+                ),
+                progress=FailureProgress(
+                    candidate_generation=candidate.reference.generation,
+                    context_generation=session.context.generation,
+                    approved_strategy="test_asset_repair",
+                ),
+            )
+        )
+        blocked = RuntimeOutcome(
+            session.invocation_id,
+            CompletionDecision(
+                "blocked",
+                "undetermined",
+                "incomplete",
+                reason,
+                False,
+            ),
+            candidate,
+            (),
+            None,
+            failure_bundle=bundle,
+        )
+        return self._route_terminal(
+            session,
+            blocked,
+            RecoveryRoute(
+                "exception",
+                "test_repair_route_unavailable",
+                "provide_independent_test_repair",
+                False,
+                False,
+            ),
+        )
+
+    def _ensure_failure_bundle(
+        self,
+        session: _ExecutionSession,
+        outcome: RuntimeOutcome,
+    ) -> RuntimeOutcome:
+        if outcome.failure_bundle is not None:
+            return outcome
+        failure_class = self._class_for_outcome(outcome)
+        observation = FailureObservation(
+            failure_class,
+            outcome.completion.reason_code,
+            session.specification.authority,
+            session.invocation_id,
+            outcome.candidate.reference if outcome.candidate else None,
+            verification_subject_id=(
+                outcome.results[0].plan_id if outcome.results else ""
+            ),
+            test_asset_digests=tuple(
+                result.asset_digest for result in outcome.results
+            ),
+            failed_scenario_ids=session.specification.acceptance_scenarios,
+            affected_resources=(
+                outcome.candidate.changes.changed_paths
+                if outcome.candidate
+                else ()
+            ),
+            attempted_routes=session.attempted_routes,
+            remaining_budget=self._remaining_agent_budget(session),
+            retryable=any(result.retryable for result in outcome.results),
+            external_side_effect_uncertain=(
+                failure_class == "external_side_effect_uncertain"
+            ),
+            stdout=outcome.results[0].stdout if outcome.results else "",
+            stderr=outcome.results[0].stderr if outcome.results else "",
+            allowed_machine_actions=self._allowed_actions(failure_class),
+            required_human_authority=self._required_authority(failure_class),
+            remaining_budgets=(
+                (
+                    "agent_attempts",
+                    self._remaining_agent_budget(session),
+                ),
+            ),
+            progress=FailureProgress(
+                candidate_generation=(
+                    outcome.candidate.reference.generation
+                    if outcome.candidate
+                    else 0
+                ),
+                context_generation=session.context.generation,
+                approved_strategy=self._strategy_for(failure_class),
+            ),
+        )
+        return replace(outcome, failure_bundle=self._failure_builder.build(observation))
+
+    def _class_for_outcome(self, outcome: RuntimeOutcome) -> str:
+        reason = outcome.completion.reason_code
+        if reason in {"scope_change_required"}:
+            return "scope_expansion_required"
+        if reason == "test_semantics_uncertain":
+            return "test_semantics_uncertain"
+        if reason == "external_side_effect_uncertain":
+            return "external_side_effect_uncertain"
+        if reason in {
+            "candidate_content_changed_after_freeze",
+            "agent_result_stale_generation",
+        }:
+            return "candidate_stale"
+        if reason == "impact_closure_incomplete":
+            return "system_map_unavailable"
+        if reason == "context_request_no_progress":
+            return "context_insufficient"
+        if reason in {
+            "platform_blocked",
+            "runner_start_failed",
+            "verification_timeout",
+            "required_verification_incomplete",
+        }:
+            return "runner_failed"
+        if reason == "agent_driver_recovery_exhausted":
+            return "tool_backend_unavailable"
+        return "product_failed"
+
+    def _route_for_outcome(
+        self,
+        session: _ExecutionSession,
+        outcome: RuntimeOutcome,
+        router: RecoveryRouter,
+        observed_candidates: dict[str, int],
+        remaining_budget: int,
+    ) -> RecoveryRoute | None:
+        bundle = outcome.failure_bundle
+        if bundle is None:
+            return None
+        reason = outcome.completion.reason_code
+        if reason in {
+            "platform_blocked",
+            "agent_driver_recovery_exhausted",
+            "required_verification_incomplete",
+        }:
+            return RecoveryRoute(
+                "exception",
+                "platform_blocked",
+                "preserve_and_report",
+                False,
+                True,
+                required_authority=("new_recovery_policy",),
+            )
+        if reason == "impact_closure_incomplete":
+            return RecoveryRoute(
+                "exception",
+                "impact_discovery_blocked",
+                "preserve_and_report",
+                False,
+                False,
+            )
+        if reason == "context_request_no_progress":
+            return RecoveryRoute(
+                "exception",
+                "context_recovery_blocked",
+                "preserve_and_report",
+                False,
+                False,
+            )
+        if reason == "required_verification_missing":
+            return RecoveryRoute(
+                "exception",
+                "test_repair_route_unavailable",
+                "provide_independent_test_admission",
+                False,
+                False,
+            )
+        routable = {
+            "required_verification_failed",
+            "scope_admission_rejected",
+            "candidate_content_changed_after_freeze",
+            "agent_result_stale_generation",
+            "scope_change_required",
+            "test_semantics_uncertain",
+            "external_side_effect_uncertain",
+        }
+        if reason not in routable:
+            return None
+        candidate_digest = bundle.candidate.digest if bundle.candidate else ""
+        if candidate_digest not in observed_candidates:
+            observed_candidates[candidate_digest] = len(observed_candidates)
+        progress = ProgressIdentity(
+            candidate_generation=observed_candidates[candidate_digest],
+            context_generation=session.context.generation,
+            approved_strategy=self._strategy_for(bundle.failure_class),
+        )
+        request = RecoveryRouteRequest(
+            bundle,
+            AttemptFingerprint(
+                session.specification.authority.digest,
+                candidate_digest,
+                progress.approved_strategy,
+                bundle.reason_code,
+            ),
+            progress,
+            remaining_budget,
+        )
+        return router.route(request)
+
+    def _route_terminal(
+        self,
+        session: _ExecutionSession,
+        outcome: RuntimeOutcome,
+        route: RecoveryRoute,
+    ) -> RuntimeOutcome:
+        bundle = outcome.failure_bundle
+        report = ExceptionReport(
+            route.reason_code,
+            (
+                outcome.exception_report.requested_paths
+                if outcome.exception_report
+                else ()
+            ),
+            session.specification.write_scope,
+            (bundle.bundle_id,) if bundle else (),
+            (route.action,),
+            current_authority_class=session.specification.risk_class,
+            requested_authority_class=(
+                "L3" if route.requires_human else session.specification.risk_class
+            ),
+            blocked_transition=route.action,
+            failure_bundle_id=bundle.bundle_id if bundle else "",
+            affected_nodes=bundle.affected_nodes if bundle else (),
+            affected_resources=bundle.affected_resources if bundle else (),
+            affected_contracts=(
+                bundle.failed_scenario_ids if bundle else ()
+            ),
+            architecture_query_result_id=(
+                bundle.architecture_query_result_id if bundle else ""
+            ),
+            live_source_confirmations=(
+                bundle.live_source_confirmations if bundle else ()
+            ),
+            attempted_actions=tuple(
+                dict.fromkeys(session.attempted_routes + (route.action,))
+            ),
+            remaining_budget=bundle.remaining_budget if bundle else 0,
+            preserved_candidate_digest=(
+                outcome.candidate.reference.digest if outcome.candidate else ""
+            ),
+            preserved_diff=(
+                outcome.candidate.changes.changed_paths
+                if outcome.candidate
+                else ()
+            ),
+            requested_authority_change=",".join(route.required_authority),
+            verification_impact=(
+                bundle.failed_scenario_ids if bundle else ()
+            ),
+            external_impact=(
+                ("external_side_effect_uncertain",)
+                if bundle and bundle.external_side_effect_uncertain
+                else ()
+            ),
+            options=(route.action,),
+            preserved_verification_subject=(
+                bundle.verification_subject_id if bundle else ""
+            ),
+            option_tradeoffs=(
+                (
+                    "current_authority_and_acceptance_remain_unchanged",
+                )
+                if route.requires_human
+                else ("safe_automatic_routes_exhausted",)
+            ),
+        )
+        return self._reported_exception(
+            session.invocation_id,
+            report,
+            outcome.candidate,
+            bundle,
+            outcome.results,
+        )
+
+    def _build_evidence_bundle(
+        self,
+        session: _ExecutionSession,
+        candidate: FrozenCandidate,
+        evidence: _CandidateEvidence,
+        reason_code: str,
+    ) -> FailureBundle:
+        failure_class = self._class_from_evidence(
+            reason_code,
+            evidence,
+            candidate,
+        )
+        failed_assets = {
+            result.asset_digest
+            for result in evidence.results
+            if not _verification_passed(result)
+        }
+        failed_scenarios = tuple(
+            scenario
+            for admission in evidence.admissions
+            if admission.asset.digest in failed_assets
+            for scenario in admission.asset.scenario_ids
+        )
+        first_result = next(
+            (
+                result
+                for result in evidence.results
+                if not _verification_passed(result)
+            ),
+            evidence.results[0] if evidence.results else None,
+        )
+        runner_bundle = next(iter(evidence.failure_bundles), None)
+        if runner_bundle is not None:
+            failure_class = runner_bundle.failure_class
+        observation = FailureObservation(
+            failure_class,
+            (
+                runner_bundle.reason_code
+                if runner_bundle is not None
+                else first_result.reason_code
+                if first_result
+                else reason_code
+            ),
+            session.specification.authority,
+            session.invocation_id,
+            candidate.reference,
+            verification_subject_id=first_result.plan_id if first_result else "",
+            test_asset_digests=tuple(
+                admission.asset.digest for admission in evidence.admissions
+            ),
+            failed_scenario_ids=failed_scenarios,
+            affected_nodes=evidence.impact.nodes,
+            affected_resources=candidate.changes.changed_paths,
+            actual_diff_summary=candidate.changes.changed_paths,
+            architecture_query_result_id=_impact_identity(evidence.impact),
+            live_source_confirmations=(
+                ("bounded_live_source_fallback",)
+                if evidence.impact.used_live_fallback
+                else ()
+            ),
+            attempted_routes=(
+                runner_bundle.attempted_routes
+                if runner_bundle is not None
+                else session.attempted_routes
+            ),
+            remaining_budget=(
+                runner_bundle.remaining_budget
+                if runner_bundle is not None
+                else self._remaining_agent_budget(session)
+            ),
+            retryable=first_result.retryable if first_result else False,
+            stdout=(
+                runner_bundle.diagnostics.stdout
+                if runner_bundle is not None
+                else first_result.stdout
+                if first_result
+                else ""
+            ),
+            stderr=(
+                runner_bundle.diagnostics.stderr
+                if runner_bundle is not None
+                else first_result.stderr
+                if first_result
+                else ""
+            ),
+            traceback_location=(
+                _first_traceback_location(first_result.stderr)
+                if first_result
+                else ""
+            ),
+            allowed_machine_actions=self._allowed_actions(failure_class),
+            required_human_authority=self._required_authority(failure_class),
+            progress=(
+                runner_bundle.progress
+                if runner_bundle is not None
+                else FailureProgress(
+                    candidate_generation=candidate.reference.generation,
+                    test_asset_generation=max(
+                        (
+                            admission.asset.version
+                            for admission in evidence.admissions
+                        ),
+                        default=0,
+                    ),
+                    context_generation=session.context.generation,
+                    impact_generation=session.attempt,
+                    approved_strategy=self._strategy_for(failure_class),
+                )
+            ),
+            remaining_budgets=(
+                runner_bundle.remaining_budgets
+                if runner_bundle is not None
+                else (
+                    (
+                        "agent_attempts",
+                        self._remaining_agent_budget(session),
+                    ),
+                )
+            ),
+            consumed_architecture_facts=evidence.impact.consumed_facts,
+        )
+        return self._failure_builder.build(observation)
+
+    def _class_from_evidence(
+        self,
+        reason_code: str,
+        evidence: _CandidateEvidence,
+        candidate: FrozenCandidate,
+    ) -> str:
+        if reason_code == "impact_closure_incomplete":
+            return "system_map_unavailable"
+        if reason_code == "verification_wrong_subject":
+            return "candidate_stale"
+        if reason_code in {
+            "verification_asset_not_admitted",
+            "verification_completeness_incomplete",
+        }:
+            return "test_asset_stale"
+        if not evidence.results:
+            return "runner_failed"
+        first = next(
+            (
+                result
+                for result in evidence.results
+                if not _verification_passed(result)
+            ),
+            evidence.results[0],
+        )
+        if first.reason_code == "tool_backend_unavailable":
+            return "tool_backend_unavailable"
+        return self._failure_classifier.classify_verification(first)
+
+    def _verify_phase2(
+        self,
+        session: _ExecutionSession,
+        candidate: FrozenCandidate,
+        admissions: tuple[AssetAdmission, ...],
+    ) -> tuple[tuple[VerificationResult, ...], tuple[FailureBundle, ...]]:
+        executions = tuple(
+            self._verify_asset_phase2(session, candidate, admission)
+            for admission in admissions
+        )
+        return (
+            tuple(result for result, _ in executions),
+            tuple(bundle for _, bundle in executions if bundle is not None),
+        )
+
+    def _verify_asset_phase2(
+        self,
+        session: _ExecutionSession,
+        candidate: FrozenCandidate,
+        admission: AssetAdmission,
+    ) -> tuple[VerificationResult, FailureBundle | None]:
+        backend_id = self._backend_registry.default_backend_id
+        policy = self._recovery_policy
+        router = RecoveryRouter(policy)
+        router.ledger.backend_attempts[backend_id] = (
+            policy.equivalent_backend_attempt_limit
+        )
+        environment_generation = 0
+        maximum_actions = (
+            policy.transient_action_limit + len(policy.approved_backends) + 1
+        )
+        for action_index in range(maximum_actions):
+            backend = self._backend_registry.backend(backend_id)
+            result = self._run_backend(candidate, admission, backend)
+            if not result.retryable:
+                return result, None
+            failure_class = (
+                "tool_backend_unavailable"
+                if result.reason_code == "tool_backend_unavailable"
+                else "runner_failed"
+            )
+            bundle = self._runner_failure_bundle(
+                session,
+                candidate,
+                admission,
+                result,
+                failure_class,
+                router,
+                maximum_actions - action_index,
+                environment_generation,
+            )
+            progress = ProgressIdentity(
+                environment_generation=environment_generation,
+                approved_strategy="runner_recovery",
+            )
+            route = router.route(
+                RecoveryRouteRequest(
+                    bundle,
+                    AttemptFingerprint(
+                        admission.asset.digest,
+                        candidate.reference.digest,
+                        "runner_recovery",
+                        result.reason_code,
+                    ),
+                    progress,
+                    maximum_actions - action_index,
+                    backend_id,
+                    self._backend_registry.ready_equivalent_backends(backend_id),
+                )
+            )
+            self._emit(
+                session.invocation_id,
+                "runner_recovery_route_selected",
+                route.reason_code,
+            )
+            if not route.may_continue:
+                terminal = self._runner_failure_bundle(
+                    session,
+                    candidate,
+                    admission,
+                    result,
+                    failure_class,
+                    router,
+                    maximum_actions - action_index,
+                    environment_generation,
+                    (route.action,),
+                )
+                return (
+                    replace(
+                        result,
+                        reason_code=route.reason_code,
+                        retryable=False,
+                    ),
+                    terminal,
+                )
+            environment_generation += 1
+            if route.selected_backend:
+                backend_id = route.selected_backend
+        terminal = self._runner_failure_bundle(
+            session,
+            candidate,
+            admission,
+            result,
+            failure_class,
+            router,
+            0,
+            environment_generation,
+            ("preserve_and_report",),
+        )
+        return (
+            replace(result, reason_code="platform_blocked", retryable=False),
+            terminal,
+        )
+
+    def _run_backend(
+        self,
+        candidate: FrozenCandidate,
+        admission: AssetAdmission,
+        backend: VerificationBackend,
+    ) -> VerificationResult:
+        if not backend.ready:
+            return VerificationResult(
+                f"backend:{backend.backend_id}",
+                candidate.reference,
+                admission.asset.digest,
+                "failed",
+                "undetermined",
+                "incomplete",
+                "tool_backend_unavailable",
+                True,
+                None,
+                0,
+                "",
+                "",
+                False,
+            )
+        return self._run_asset_in_fresh_workspace(
+            candidate,
+            admission,
+            backend.executor,
+        )
+
+    def _runner_failure_bundle(
+        self,
+        session: _ExecutionSession,
+        candidate: FrozenCandidate,
+        admission: AssetAdmission,
+        result: VerificationResult,
+        failure_class: str,
+        router: RecoveryRouter,
+        remaining_budget: int,
+        environment_generation: int,
+        additional_routes: tuple[str, ...] = (),
+    ) -> FailureBundle:
+        return self._failure_builder.build(
+            FailureObservation(
+                failure_class,
+                result.reason_code,
+                session.specification.authority,
+                session.invocation_id,
+                candidate.reference,
+                result.plan_id,
+                (admission.asset.digest,),
+                admission.asset.scenario_ids,
+                affected_resources=candidate.changes.changed_paths,
+                attempted_routes=(
+                    tuple(router.ledger.attempted_routes) + additional_routes
+                ),
+                remaining_budget=remaining_budget,
+                retryable=True,
+                stdout=result.stdout,
+                stderr=result.stderr,
+                allowed_machine_actions=self._allowed_actions(failure_class),
+                progress=FailureProgress(
+                    candidate_generation=candidate.reference.generation,
+                    test_asset_generation=admission.asset.version,
+                    environment_generation=environment_generation,
+                    context_generation=session.context.generation,
+                    impact_generation=session.attempt,
+                    approved_strategy="runner_recovery",
+                ),
+                remaining_budgets=(
+                    ("runner_recovery_actions", remaining_budget),
+                ),
+            )
+        )
+
+    def _route_request(
+        self,
+        bundle: FailureBundle,
+        session: _ExecutionSession,
+        candidate: FrozenCandidate | None,
+        remaining_budget: int,
+        strategy: str,
+    ) -> RecoveryRouteRequest:
+        return RecoveryRouteRequest(
+            bundle,
+            AttemptFingerprint(
+                session.specification.authority.digest,
+                candidate.reference.digest if candidate else "",
+                strategy,
+                bundle.reason_code,
+            ),
+            ProgressIdentity(approved_strategy=strategy),
+            remaining_budget,
+        )
+
+    def _remaining_agent_budget(self, session: _ExecutionSession) -> int:
+        maximum = int(session.specification.budgets.get("agent_attempts", 3))
+        return max(0, maximum - session.attempt)
+
+    def _strategy_for(self, failure_class: str) -> str:
+        strategies = {
+            "product_failed": "agent_product_repair",
+            "candidate_stale": "candidate_generation_refresh",
+            "scope_expansion_required": "scope_revision",
+            "test_semantics_uncertain": "specification_revision",
+            "external_side_effect_uncertain": "external_high_risk_flow",
+        }
+        return strategies.get(failure_class, "bounded_recovery")
+
+    def _allowed_actions(self, failure_class: str) -> tuple[str, ...]:
+        actions = {
+            "product_failed": ("repair_product_in_scope",),
+            "test_implementation_defect": ("repair_and_readmit_test_asset",),
+            "runner_failed": (
+                "rebuild_runner_environment",
+                "select_approved_backend",
+            ),
+            "tool_backend_unavailable": ("select_approved_backend",),
+            "context_insufficient": ("expand_context",),
+            "system_map_unavailable": ("query_bounded_live_source",),
+            "candidate_stale": ("create_current_candidate_generation",),
+            "test_asset_stale": ("readmit_current_test_asset",),
+            "impact_underestimated": ("expand_verification_closure",),
+        }
+        return actions.get(failure_class, ())
+
+    def _required_authority(self, failure_class: str) -> tuple[str, ...]:
+        authority = {
+            "test_semantics_uncertain": ("expected_behavior", "acceptance"),
+            "scope_expansion_required": ("write_scope",),
+            "external_side_effect_uncertain": ("external_operation",),
+        }
+        return authority.get(failure_class, ())
+
+
 def _context_selectors(map_facts: tuple[str, ...]) -> set[str]:
     selectors: set[str] = set()
     for fact in map_facts:
@@ -824,6 +2011,94 @@ def _context_selectors(map_facts: tuple[str, ...]) -> set[str]:
             binding = fact.removeprefix("resource:")
             selectors.add(binding.split("->", 1)[0])
     return selectors
+
+
+def _verification_passed(result: VerificationResult) -> bool:
+    return (
+        result.terminal_state == "succeeded"
+        and result.acceptance_outcome == "passed"
+        and result.verification_completeness == "complete"
+    )
+
+
+def _is_test_asset_failure(reason: str) -> bool:
+    prefixes = (
+        "verification_",
+        "independent_test_",
+        "test_repair_",
+    )
+    return reason.startswith(prefixes)
+
+
+def _authorized_asset_scenarios(
+    specification: WorkloadSpecification,
+    baseline: VerificationAsset | None,
+) -> tuple[str, ...]:
+    inherited = baseline.scenario_ids if baseline is not None else ()
+    return tuple(
+        sorted(
+            set(specification.acceptance_scenarios + inherited)
+        )
+    )
+
+
+def _impact_identity(impact: ImpactClosure) -> str:
+    return content_digest(
+        {
+            "nodes": impact.nodes,
+            "relations": impact.relations,
+            "consumed_facts": impact.consumed_facts,
+            "used_live_fallback": impact.used_live_fallback,
+            "complete": impact.complete,
+        }
+    )
+
+
+def _first_traceback_location(stderr: str) -> str:
+    for line in stderr.splitlines():
+        normalized = line.strip()
+        if normalized.startswith("File ") or normalized.startswith("Traceback"):
+            return normalized
+    return ""
+
+
+def _serialize_context(context: ContextEnvelope) -> dict[str, object]:
+    return {
+        "generation": context.generation,
+        "items": [asdict(item) for item in context.items],
+        "map_facts": context.map_facts,
+        "charged_tokens": context.charged_tokens,
+        "digest": context.digest,
+    }
+
+
+def _restore_context(value: dict[str, object]) -> ContextEnvelope:
+    items = tuple(ContextItem(**item) for item in value["items"])
+    context = ContextEnvelope(
+        int(value["generation"]),
+        items,
+        tuple(value["map_facts"]),
+        int(value["charged_tokens"]),
+        str(value["digest"]),
+    )
+    expected = content_digest(
+        {
+            "generation": context.generation,
+            "items": [
+                {
+                    "selector": item.selector,
+                    "purpose": item.purpose,
+                    "content_digest": content_digest(item.content),
+                }
+                for item in context.items
+            ],
+            "map_facts": context.map_facts,
+            "charged_tokens": context.charged_tokens,
+        }
+    )
+    if context.digest != expected:
+        raise ContractError("recovery_context_digest_mismatch")
+    return context
 
 
 def _serialize_outcome(outcome: RuntimeOutcome) -> dict[str, object]:
@@ -845,6 +2120,11 @@ def _serialize_outcome(outcome: RuntimeOutcome) -> dict[str, object]:
             if outcome.exception_report is not None
             else None
         ),
+        "failure_bundle": (
+            asdict(outcome.failure_bundle)
+            if outcome.failure_bundle is not None
+            else None
+        ),
     }
 
 
@@ -860,6 +2140,7 @@ def _restore_outcome(value: dict[str, object]) -> RuntimeOutcome:
     results = tuple(_restore_result(item) for item in value["results"])
     report_value = value["exception_report"]
     report = _restore_exception_report(report_value)
+    failure_bundle = _restore_failure_bundle(value.get("failure_bundle"))
     bundle_value = value["bundle_path"]
     return RuntimeOutcome(
         value["invocation_id"],
@@ -868,6 +2149,7 @@ def _restore_outcome(value: dict[str, object]) -> RuntimeOutcome:
         results,
         Path(bundle_value) if bundle_value else None,
         report,
+        failure_bundle,
     )
 
 
@@ -884,13 +2166,67 @@ def _restore_exception_report(
 ) -> ExceptionReport | None:
     if value is None:
         return None
-    return ExceptionReport(
-        value["reason_code"],
-        tuple(value["requested_paths"]),
-        tuple(value["current_write_scope"]),
-        tuple(value["evidence"]),
-        tuple(value["allowed_next_steps"]),
+    tuple_fields = {
+        "requested_paths",
+        "current_write_scope",
+        "evidence",
+        "allowed_next_steps",
+        "affected_nodes",
+        "affected_resources",
+        "affected_contracts",
+        "live_source_confirmations",
+        "attempted_actions",
+        "preserved_diff",
+        "verification_impact",
+        "external_impact",
+        "options",
+        "unaffected_work",
+        "option_tradeoffs",
+    }
+    normalized = dict(value)
+    for field in tuple_fields:
+        if field in normalized:
+            normalized[field] = tuple(normalized[field])
+    return ExceptionReport(**normalized)
+
+
+def _restore_failure_bundle(
+    value: dict[str, object] | None,
+) -> FailureBundle | None:
+    if value is None:
+        return None
+    tuple_fields = {
+        "test_asset_digests",
+        "failed_scenario_ids",
+        "affected_nodes",
+        "affected_resources",
+        "actual_diff_summary",
+        "live_source_confirmations",
+        "attempted_routes",
+        "allowed_machine_actions",
+        "required_human_authority",
+        "consumed_architecture_facts",
+    }
+    normalized = dict(value)
+    for field in tuple_fields:
+        normalized[field] = tuple(normalized[field])
+    normalized["specification"] = AuthorityReference(**normalized["specification"])
+    candidate = normalized["candidate"]
+    normalized["candidate"] = (
+        CandidateReference(**candidate) if candidate is not None else None
     )
+    normalized["diagnostics"] = DiagnosticExcerpt(**normalized["diagnostics"])
+    progress = normalized.get("progress")
+    normalized["progress"] = (
+        FailureProgress(**progress)
+        if progress is not None
+        else FailureProgress()
+    )
+    normalized["remaining_budgets"] = tuple(
+        tuple(item)
+        for item in normalized.get("remaining_budgets", ())
+    )
+    return FailureBundle(**normalized)
 
 
 def _restore_result(value: dict[str, object]) -> VerificationResult:
