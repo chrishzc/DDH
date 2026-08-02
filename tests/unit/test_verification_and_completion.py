@@ -76,7 +76,11 @@ class VerificationTests(unittest.TestCase):
             frozen = candidate(Path(directory))
             asset = verification_asset(
                 frozen.reference,
-                (sys.executable, "-c", "print('界' * 1000)"),
+                (
+                    sys.executable,
+                    "-c",
+                    "import sys; sys.stdout.buffer.write('界'.encode('utf-8') * 1000)",
+                ),
             )
             plan = FixedCommandAdapter().build_plan(asset, frozen.root, 10)
             result = VerificationRunner(stdout_limit=65).run(plan)
