@@ -1,0 +1,96 @@
+{
+  "contract_refs": [
+    "DDH-P0-SPEC-001@1.1.0",
+    "SPEC-WP-001",
+    "DDH-RISK-001",
+    "DDH-COMP-001"
+  ],
+  "failure_routes": [
+    {
+      "condition": "test_implementation_defect",
+      "scenario_id": "P0-TEST-S006"
+    },
+    {
+      "condition": "product_failure",
+      "scenario_id": "P0-TEST-S007"
+    },
+    {
+      "condition": "runner_backend_unavailable",
+      "scenario_id": "P0-REC-001"
+    },
+    {
+      "condition": "outside_scope_repair_required",
+      "scenario_id": "P0-REC-003B"
+    }
+  ],
+  "flow_id": "P0-FLOW-L1-001",
+  "initial_authority": {
+    "external_write_allowed": false,
+    "risk_class": "L1",
+    "task_specification": "DDH-P0-SPEC-001@1.1.0",
+    "write_scope": [
+      "PortableWorkspace/PathNormalizer"
+    ]
+  },
+  "scope_layer": "Module",
+  "steps": [
+    {
+      "expected_outcome": "confirmed_ready",
+      "order": 1,
+      "scenario_id": "P0-AUTH-001"
+    },
+    {
+      "expected_outcome": "scope_nodes_and_relations_recorded",
+      "order": 2,
+      "scenario_id": "P0-SM-001"
+    },
+    {
+      "expected_outcome": "high_assurance_domain_appropriate",
+      "order": 3,
+      "scenario_id": "P0-RISK-003"
+    },
+    {
+      "expected_outcome": "context_envelope_materialized",
+      "order": 4,
+      "scenario_id": "P0-CTX-001"
+    },
+    {
+      "expected_outcome": "accepted_into_candidate",
+      "order": 5,
+      "scenario_id": "P0-CAND-001"
+    },
+    {
+      "expected_outcome": "candidate_frozen_after_bounded_drain",
+      "order": 6,
+      "scenario_id": "P0-CAND-008"
+    },
+    {
+      "expected_outcome": "quality_contract_pinned",
+      "order": 7,
+      "scenario_id": "P0-TEST-S003"
+    },
+    {
+      "expected_outcome": "mechanical_verification_passed",
+      "order": 8,
+      "scenario_id": "P0-VERIFY-S001"
+    },
+    {
+      "expected_outcome": "work_package_completed",
+      "order": 9,
+      "scenario_id": "P0-COMP-S001"
+    },
+    {
+      "expected_outcome": "routine_no_orchestration_signal",
+      "order": 10,
+      "scenario_id": "P0-LEARN-001"
+    }
+  ],
+  "terminal_assertions": {
+    "agent_required_for_final_verification": false,
+    "external_authority_granted": false,
+    "higher_layer_auto_promoted": false,
+    "routine_human_checkpoint_count": 0,
+    "work_package_completed": true
+  },
+  "title": "L1 serial Module calculation change"
+}

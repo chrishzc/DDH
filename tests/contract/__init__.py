@@ -1,0 +1,2 @@
+"""DDH contract tests."""
+

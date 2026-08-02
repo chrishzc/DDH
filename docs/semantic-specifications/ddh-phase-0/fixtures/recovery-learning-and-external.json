@@ -1,0 +1,797 @@
+{
+  "contract_refs": [
+    "docs/decisions/0006-phase-2-automatic-recovery-and-exception-routing.md",
+    "docs/decisions/0010-phase-6-learning-steward-and-controlled-evolution.md",
+    "docs/decisions/0011-phase-7-external-high-risk-operations.md",
+    "docs/decisions/0023-bounded-learning-intake-and-retention-profile.md",
+    "docs/decisions/0024-staged-external-high-risk-adapter-productization.md"
+  ],
+  "fixture_family": "recovery-learning-and-external",
+  "scenarios": [
+    {
+      "authority_source": "DDH-P0-SPEC-001 and Decision 0006",
+      "contract_refs": [
+        "docs/decisions/0006-phase-2-automatic-recovery-and-exception-routing.md"
+      ],
+      "expected": {
+        "next_action": "select_approved_backend_and_retry_same_subject",
+        "outcome": "recovery_required"
+      },
+      "given": {
+        "acceptance_current": true,
+        "candidate_current": true,
+        "runner_backend": "unavailable"
+      },
+      "immutable_fields": [
+        "candidate_digest",
+        "specification_version",
+        "required_acceptance"
+      ],
+      "scenario_id": "P0-REC-001",
+      "when": {
+        "event": "capability_health_failure_before_test_start"
+      }
+    },
+    {
+      "authority_source": "DDH-P0-SPEC-001 and Decision 0006",
+      "contract_refs": [
+        "docs/decisions/0006-phase-2-automatic-recovery-and-exception-routing.md"
+      ],
+      "expected": {
+        "next_action": "different_diagnosis_or_bounded_stop",
+        "outcome": "rejected"
+      },
+      "given": {
+        "candidate_changed": false,
+        "environment_changed": false,
+        "failure_fingerprint": "same",
+        "new_evidence": false
+      },
+      "immutable_fields": [
+        "acceptance",
+        "budget_ceiling"
+      ],
+      "scenario_id": "P0-REC-002",
+      "when": {
+        "event": "identical_retry_requested"
+      }
+    },
+    {
+      "authority_source": "DDH-P0-SPEC-001 and Decisions 0002, 0006, 0019",
+      "contract_refs": [
+        "docs/decisions/0002-system-map-actual-architecture-index.md",
+        "docs/decisions/0006-phase-2-automatic-recovery-and-exception-routing.md",
+        "docs/decisions/0019-capability-based-system-map-consumer-port.md"
+      ],
+      "expected": {
+        "next_action": "expand_read_and_verification_closure_only",
+        "outcome": "accepted"
+      },
+      "given": {
+        "outside_scope_repair_required": false,
+        "reverse_dependent_discovered": true
+      },
+      "immutable_fields": [
+        "write_scope",
+        "task_specification"
+      ],
+      "scenario_id": "P0-REC-003A",
+      "when": {
+        "event": "actual_delta_impact_refresh"
+      }
+    },
+    {
+      "authority_source": "DDH-P0-SPEC-001 and Decisions 0002, 0006, 0019",
+      "contract_refs": [
+        "docs/decisions/0006-phase-2-automatic-recovery-and-exception-routing.md",
+        "docs/decisions/0019-capability-based-system-map-consumer-port.md"
+      ],
+      "expected": {
+        "next_action": "request_versioned_scope_revision",
+        "outcome": "human_decision_required"
+      },
+      "given": {
+        "outside_scope_repair_required": true,
+        "reverse_dependent_discovered": true
+      },
+      "immutable_fields": [
+        "write_scope",
+        "architecture_contract"
+      ],
+      "scenario_id": "P0-REC-003B",
+      "when": {
+        "event": "repair_route_selected"
+      }
+    },
+    {
+      "authority_source": "DDH-P0-SPEC-001 and Decision 0021",
+      "contract_refs": [
+        "docs/decisions/0021-separated-budget-ledgers-and-bootstrap-policy.md"
+      ],
+      "expected": {
+        "next_action": "preserve_candidate_and_report_attempts_evidence_gap_options",
+        "outcome": "blocked"
+      },
+      "given": {
+        "recovery_budget_remaining": 0
+      },
+      "immutable_fields": [
+        "required_tests",
+        "acceptance",
+        "budget_ceiling"
+      ],
+      "scenario_id": "P0-REC-004",
+      "when": {
+        "event": "new_attempt_requested"
+      }
+    },
+    {
+      "authority_source": "Decision 0023",
+      "contract_refs": [
+        "docs/decisions/0023-bounded-learning-intake-and-retention-profile.md"
+      ],
+      "expected": {
+        "delete_ledger": "immediate",
+        "model_call": false,
+        "outcome": "routine_no_orchestration_signal"
+      },
+      "given": {
+        "orchestration_signal": false,
+        "terminal_outcome": "completed"
+      },
+      "immutable_fields": [
+        "completion_outcome"
+      ],
+      "scenario_id": "P0-LEARN-001",
+      "when": {
+        "event": "zero_agent_prefilter"
+      }
+    },
+    {
+      "authority_source": "Decision 0023",
+      "contract_refs": [
+        "docs/decisions/0023-bounded-learning-intake-and-retention-profile.md"
+      ],
+      "expected": {
+        "candidate_priority": "P2",
+        "delete_source_within_hours": 24,
+        "next_action": "daily_or_idle_batch",
+        "outcome": "accepted"
+      },
+      "given": {
+        "comparable_occurrences": 3,
+        "distinct_work_packages": 2,
+        "pattern": "context_inflation"
+      },
+      "immutable_fields": [
+        "priority_semantics",
+        "work_package_budget"
+      ],
+      "scenario_id": "P0-LEARN-002",
+      "when": {
+        "event": "mechanical_candidate_fold"
+      }
+    },
+    {
+      "authority_source": "Decision 0023",
+      "contract_refs": [
+        "docs/decisions/0023-bounded-learning-intake-and-retention-profile.md"
+      ],
+      "expected": {
+        "candidate_priority": "P0",
+        "completion_waits": false,
+        "next_action": "analyze_after_safe_transaction_end",
+        "outcome": "accepted"
+      },
+      "given": {
+        "signal": "unsafe_recovery"
+      },
+      "immutable_fields": [
+        "mutation_safety",
+        "completion_outcome"
+      ],
+      "scenario_id": "P0-LEARN-003",
+      "when": {
+        "event": "terminal_prefilter"
+      }
+    },
+    {
+      "authority_source": "Decision 0023",
+      "contract_refs": [
+        "docs/decisions/0023-bounded-learning-intake-and-retention-profile.md"
+      ],
+      "expected": {
+        "completion_waits": false,
+        "outcome": "analysis_expired_without_memory_change",
+        "permanent_receipt": false
+      },
+      "given": {
+        "analyzer_available": false,
+        "maximum_age_reached": true
+      },
+      "immutable_fields": [
+        "retention_upper_bound",
+        "completion_outcome"
+      ],
+      "scenario_id": "P0-LEARN-004",
+      "when": {
+        "event": "candidate_expiration"
+      }
+    },
+    {
+      "authority_source": "Decisions 0011 and 0024",
+      "contract_refs": [
+        "docs/decisions/0011-phase-7-external-high-risk-operations.md",
+        "docs/decisions/0024-staged-external-high-risk-adapter-productization.md"
+      ],
+      "expected": {
+        "external_write": false,
+        "outcome": "adapter_unavailable"
+      },
+      "given": {
+        "plan_valid": true,
+        "real_adapter_installed": false
+      },
+      "immutable_fields": [
+        "external_authority",
+        "target"
+      ],
+      "scenario_id": "P0-EXT-001",
+      "when": {
+        "event": "execution_requested"
+      }
+    },
+    {
+      "authority_source": "Decision 0011",
+      "contract_refs": [
+        "docs/decisions/0011-phase-7-external-high-risk-operations.md"
+      ],
+      "expected": {
+        "external_write": false,
+        "outcome": "approval_required"
+      },
+      "given": {
+        "approval_current": true,
+        "target_changed": true
+      },
+      "immutable_fields": [
+        "approved_plan_digest",
+        "approved_target"
+      ],
+      "scenario_id": "P0-EXT-002",
+      "when": {
+        "event": "pre_execution_identity_check"
+      }
+    },
+    {
+      "authority_source": "Decision 0011",
+      "contract_refs": [
+        "docs/decisions/0011-phase-7-external-high-risk-operations.md"
+      ],
+        "expected": {
+          "blind_retry": false,
+          "external_write": false,
+          "next_action": "reconcile_current_external_state",
+          "outcome": "uncertain"
+      },
+      "given": {
+        "provider_received_request": "unknown",
+        "response_received": false
+      },
+      "immutable_fields": [
+        "operation_plan",
+        "retry_eligibility"
+      ],
+      "scenario_id": "P0-EXT-003",
+      "when": {
+        "event": "request_timeout"
+      }
+    },
+    {
+      "authority_source": "Decision 0024",
+      "contract_refs": [
+        "docs/decisions/0024-staged-external-high-risk-adapter-productization.md"
+      ],
+      "expected": {
+        "external_write": false,
+        "outcome": "rejected"
+      },
+      "given": {
+        "operation": "arbitrary_shell_or_url",
+        "typed_capability": false
+      },
+      "immutable_fields": [
+        "operation_class",
+        "trusted_executor_capability"
+      ],
+      "scenario_id": "P0-EXT-004",
+      "when": {
+        "event": "trusted_executor_admission"
+      }
+    },
+    {
+      "authority_source": "Decision 0011",
+      "contract_refs": [
+        "docs/decisions/0011-phase-7-external-high-risk-operations.md"
+      ],
+        "expected": {
+          "automatic_mutation_continues": false,
+          "external_write": false,
+          "next_action": "new_high_risk_decision",
+          "outcome": "human_decision_required"
+      },
+      "given": {
+        "rollback_postcondition_verified": false
+      },
+      "immutable_fields": [
+        "observed_external_state",
+        "approval_scope"
+      ],
+      "scenario_id": "P0-EXT-005",
+      "when": {
+        "event": "rollback_failed"
+      }
+    },
+    {
+      "authority_source": "Decision 0023",
+      "contract_refs": [
+        "docs/decisions/0023-bounded-learning-intake-and-retention-profile.md"
+      ],
+      "expected": {
+        "delete_ledger": "immediate",
+        "memory_version_changed": false,
+        "model_call": false,
+        "outcome": "known_pattern_no_change"
+      },
+      "given": {
+        "memory_current": true,
+        "new_conflict_or_evidence": false,
+        "pattern_matches": true
+      },
+      "immutable_fields": [
+        "memory_applicability",
+        "prefilter_semantics"
+      ],
+      "scenario_id": "P0-LEARN-005",
+      "when": {
+        "event": "zero_agent_prefilter"
+      }
+    },
+    {
+      "authority_source": "Decision 0023",
+      "contract_refs": [
+        "docs/decisions/0023-bounded-learning-intake-and-retention-profile.md"
+      ],
+      "expected": {
+        "hard_cap_bytes": 65536,
+        "model_call": false,
+        "outcome": "accepted",
+        "preserved_fields": [
+          "classification",
+          "count",
+          "first_occurrence",
+          "last_occurrence",
+          "new_evidence",
+          "cost",
+          "truncation"
+        ]
+      },
+      "given": {
+        "serialized_ledger_bytes": 1000000,
+        "storm": "duplicate_attempts_tracebacks_metrics_events"
+      },
+      "immutable_fields": [
+        "hard_cap_bytes",
+        "required_aggregate_facts"
+      ],
+      "scenario_id": "P0-LEARN-006",
+      "when": {
+        "event": "deterministic_ledger_compaction"
+      }
+    },
+    {
+      "authority_source": "Decision 0023",
+      "contract_refs": [
+        "docs/decisions/0023-bounded-learning-intake-and-retention-profile.md"
+      ],
+      "expected": {
+        "dedicated_analysis_scheduled": true,
+        "outcome": "accepted",
+        "trigger": "two_occurrences_or_one_hour"
+      },
+      "given": {
+        "comparable_p1_occurrences": 2,
+        "maximum_wait_minutes": 60
+      },
+      "immutable_fields": [
+        "priority_semantics",
+        "trigger_threshold",
+        "active_work_package_budget"
+      ],
+      "scenario_id": "P0-LEARN-007",
+      "when": {
+        "event": "candidate_trigger_evaluation"
+      }
+    },
+    {
+      "authority_source": "Decision 0023",
+      "contract_refs": [
+        "docs/decisions/0023-bounded-learning-intake-and-retention-profile.md"
+      ],
+      "expected": {
+        "dedicated_model_call": false,
+        "outcome": "not_ready",
+        "required_occurrences": 5
+      },
+      "given": {
+        "p3_occurrences": 4,
+        "scheduled_batch_exists": false
+      },
+      "immutable_fields": [
+        "p3_trigger_threshold"
+      ],
+      "scenario_id": "P0-LEARN-008",
+      "when": {
+        "event": "candidate_trigger_evaluation"
+      }
+    },
+    {
+      "authority_source": "Decision 0023",
+      "contract_refs": [
+        "docs/decisions/0023-bounded-learning-intake-and-retention-profile.md"
+      ],
+      "expected": {
+        "candidate_maximum_age_days": {
+          "P0": 90,
+          "P1": 30,
+          "P2": 14,
+          "P3": 7
+        },
+        "individual_outage_upper_bound_hours": {
+          "P0": 336,
+          "P1": 168,
+          "P2": 72,
+          "P3": 24
+        },
+        "outcome": "accepted"
+      },
+      "given": {
+        "profile": "DDH_MVP_bootstrap"
+      },
+      "immutable_fields": [
+        "individual_retention_clock",
+        "candidate_retention_clock",
+        "no_permanent_ledger"
+      ],
+      "scenario_id": "P0-LEARN-009",
+      "when": {
+        "event": "retention_profile_compilation"
+      }
+    },
+    {
+      "authority_source": "Decision 0023",
+      "contract_refs": [
+        "docs/decisions/0023-bounded-learning-intake-and-retention-profile.md"
+      ],
+      "expected": {
+        "duplicate_model_analysis": false,
+        "duplicate_support_increment": false,
+        "outcome": "accepted",
+        "source_deleted_idempotently": true
+      },
+      "given": {
+        "candidate_fold_committed": true,
+        "crash_before_source_delete": true
+      },
+      "immutable_fields": [
+        "fold_identity",
+        "support_count",
+        "analysis_schedule_identity"
+      ],
+      "scenario_id": "P0-LEARN-010",
+      "when": {
+        "event": "restart_cleanup"
+      }
+    },
+    {
+      "authority_source": "Decision 0023",
+      "contract_refs": [
+        "docs/decisions/0023-bounded-learning-intake-and-retention-profile.md"
+      ],
+      "expected": {
+        "active_work_package_budget_consumed": false,
+        "completion_waits": false,
+        "outcome": "blocked",
+        "route": "delay_or_expire_learning_candidate"
+      },
+      "given": {
+        "evolution_budget_remaining": 0,
+        "work_package_active": true
+      },
+      "immutable_fields": [
+        "budget_separation",
+        "completion_independence"
+      ],
+      "scenario_id": "P0-LEARN-011",
+      "when": {
+        "event": "analyzer_budget_request"
+      }
+    },
+    {
+      "authority_source": "Decision 0023",
+      "contract_refs": [
+        "docs/decisions/0023-bounded-learning-intake-and-retention-profile.md"
+      ],
+      "expected": {
+        "compressed_raw_ledger_copy": false,
+        "outcome": "accepted",
+        "preserved": [
+          "applicability",
+          "support_count",
+          "counterevidence_count",
+          "cost_summary",
+          "bounded_examples"
+        ]
+      },
+      "given": {
+        "comparable_ledgers": 100
+      },
+      "immutable_fields": [
+        "applicability_distinctions",
+        "counterevidence",
+        "support_count"
+      ],
+      "scenario_id": "P0-LEARN-012",
+      "when": {
+        "event": "atomic_candidate_fold"
+      }
+    },
+    {
+      "authority_source": "Decision 0023",
+      "contract_refs": [
+        "docs/decisions/0023-bounded-learning-intake-and-retention-profile.md"
+      ],
+      "expected": {
+        "interpretable_without_source_ledger": true,
+        "outcome": "accepted",
+        "source_material_deleted": true
+      },
+      "given": {
+        "candidate_deleted": true,
+        "memory_promoted": true,
+        "source_ledgers_deleted": true
+      },
+      "immutable_fields": [
+        "normalized_evidence_summary",
+        "confidence",
+        "version",
+        "applicability",
+        "conflict_and_expiry_rules"
+      ],
+      "scenario_id": "P0-LEARN-013",
+      "when": {
+        "event": "memory_query_after_source_cleanup"
+      }
+    },
+    {
+      "authority_source": "Decisions 0011 and 0024",
+      "contract_refs": [
+        "docs/decisions/0011-phase-7-external-high-risk-operations.md",
+        "docs/decisions/0024-staged-external-high-risk-adapter-productization.md"
+      ],
+      "expected": {
+        "external_write": false,
+        "outcome": "accepted",
+        "raw_credential_present": false
+      },
+      "given": {
+        "exact_bindings": [
+          "candidate",
+          "commit",
+          "artifact",
+          "configuration",
+          "target",
+          "ordered_operations",
+          "credential_reference"
+        ]
+      },
+      "immutable_fields": [
+        "plan_digest",
+        "exact_bindings",
+        "credential_reference_only"
+      ],
+      "scenario_id": "P0-EXT-006",
+      "when": {
+        "event": "simulated_plan_admission"
+      }
+    },
+    {
+      "authority_source": "Decision 0024",
+      "contract_refs": [
+        "docs/decisions/0024-staged-external-high-risk-adapter-productization.md"
+      ],
+      "expected": {
+        "external_write": false,
+        "outcome": "succeeded",
+        "postcondition_verified": true
+      },
+      "given": {
+        "mode": "deterministic_simulator",
+        "simulated_target_matches_postcondition": true
+      },
+      "immutable_fields": [
+        "exact_plan",
+        "postcondition"
+      ],
+      "scenario_id": "P0-EXT-007",
+      "when": {
+        "event": "simulated_execution"
+      }
+    },
+    {
+      "authority_source": "Decision 0024",
+      "contract_refs": [
+        "docs/decisions/0024-staged-external-high-risk-adapter-productization.md"
+      ],
+      "expected": {
+        "external_write": false,
+        "outcome": "failed_not_executed",
+        "retry_requires_current_safety_guard": true
+      },
+      "given": {
+        "mode": "deterministic_simulator",
+        "provider_rejected_before_effect": true
+      },
+      "immutable_fields": [
+        "retry_eligibility",
+        "approval_currentness"
+      ],
+      "scenario_id": "P0-EXT-008",
+      "when": {
+        "event": "simulated_provider_failure"
+      }
+    },
+    {
+      "authority_source": "Decision 0024",
+      "contract_refs": [
+        "docs/decisions/0024-staged-external-high-risk-adapter-productization.md"
+      ],
+      "expected": {
+        "external_write": false,
+        "late_response_triggers_second_operation": false,
+        "next_action": "reconcile_current_state",
+        "outcome": "uncertain"
+      },
+      "given": {
+        "late_response_received": true,
+        "state": "reconciling_after_timeout"
+      },
+      "immutable_fields": [
+        "operation_identity",
+        "current_target_state"
+      ],
+      "scenario_id": "P0-EXT-009",
+      "when": {
+        "event": "late_provider_response"
+      }
+    },
+    {
+      "authority_source": "Decision 0024",
+      "contract_refs": [
+        "docs/decisions/0024-staged-external-high-risk-adapter-productization.md"
+      ],
+      "expected": {
+        "automatic_continuation": false,
+        "external_write": false,
+        "next_action": "approved_compensation_or_human_decision",
+        "outcome": "partially_applied"
+      },
+      "given": {
+        "mode": "deterministic_simulator",
+        "ordered_steps_applied": "partial"
+      },
+      "immutable_fields": [
+        "observed_partial_effect",
+        "compensation_plan"
+      ],
+      "scenario_id": "P0-EXT-010",
+      "when": {
+        "event": "partial_effect_injected"
+      }
+    },
+    {
+      "authority_source": "Decision 0024",
+      "contract_refs": [
+        "docs/decisions/0024-staged-external-high-risk-adapter-productization.md"
+      ],
+      "expected": {
+        "external_write": false,
+        "modeled_effect_count": 1,
+        "outcome": "accepted"
+      },
+      "given": {
+        "duplicate_requests": 2,
+        "idempotency_key_valid": true
+      },
+      "immutable_fields": [
+        "idempotency_key",
+        "operation_identity"
+      ],
+      "scenario_id": "P0-EXT-011",
+      "when": {
+        "event": "duplicate_request_injected"
+      }
+    },
+    {
+      "authority_source": "Decision 0011",
+      "contract_refs": [
+        "docs/decisions/0011-phase-7-external-high-risk-operations.md"
+      ],
+      "expected": {
+        "additional_write": false,
+        "external_write": false,
+        "outcome": "succeeded"
+      },
+      "given": {
+        "all_exact_postconditions_current": true,
+        "state": "uncertain"
+      },
+      "immutable_fields": [
+        "current_target_facts",
+        "postconditions"
+      ],
+      "scenario_id": "P0-EXT-012A",
+      "when": {
+        "event": "reconciliation"
+      }
+    },
+    {
+      "authority_source": "Decision 0011",
+      "contract_refs": [
+        "docs/decisions/0011-phase-7-external-high-risk-operations.md"
+      ],
+      "expected": {
+        "external_write": false,
+        "outcome": "not_executed",
+        "retry_requires_revalidation": true
+      },
+      "given": {
+        "no_effect_proven": true,
+        "state": "uncertain"
+      },
+      "immutable_fields": [
+        "current_target_facts",
+        "approval_currentness",
+        "retry_eligibility"
+      ],
+      "scenario_id": "P0-EXT-012B",
+      "when": {
+        "event": "reconciliation"
+      }
+    },
+    {
+      "authority_source": "Decision 0011",
+      "contract_refs": [
+        "docs/decisions/0011-phase-7-external-high-risk-operations.md"
+      ],
+      "expected": {
+        "blind_retry": false,
+        "external_write": false,
+        "next_action": "human_decision",
+        "outcome": "uncertain"
+      },
+      "given": {
+        "reconciliation_available": false,
+        "state": "uncertain"
+      },
+      "immutable_fields": [
+        "uncertain_state",
+        "retry_prohibition"
+      ],
+      "scenario_id": "P0-EXT-013",
+      "when": {
+        "event": "reconciliation_attempt"
+      }
+    }
+  ]
+}

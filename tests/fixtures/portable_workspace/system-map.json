@@ -1,0 +1,26 @@
+{
+  "repository_id": "portable-workspace",
+  "requested_ref": "main",
+  "resolved_commit": "fixture-commit-001",
+  "view_id": "fixture-view-001",
+  "nodes": [
+    "PortableWorkspace/PathNormalizer",
+    "PortableWorkspace/ManifestLoader"
+  ],
+  "relations": [
+    [
+      "PortableWorkspace/ManifestLoader",
+      "PortableWorkspace/PathNormalizer"
+    ]
+  ],
+  "resource_bindings": [
+    [
+      "src/path_normalizer.py",
+      "PortableWorkspace/PathNormalizer"
+    ],
+    [
+      "src/manifest_loader.py",
+      "PortableWorkspace/ManifestLoader"
+    ]
+  ]
+}

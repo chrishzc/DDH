@@ -1,0 +1,105 @@
+{
+  "$id": "https://ddh.local/schemas/phase0/fixture-family.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "contract_refs": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "minItems": 1,
+      "type": "array",
+      "uniqueItems": true
+    },
+    "fixture_family": {
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9-]*$",
+      "type": "string"
+    },
+    "scenarios": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "authority_source": {
+            "oneOf": [
+              {
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "items": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "minItems": 1,
+                "type": "array",
+                "uniqueItems": true
+              }
+            ]
+          },
+          "contract_refs": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "minItems": 1,
+            "type": "array",
+            "uniqueItems": true
+          },
+          "expected": {
+            "minProperties": 1,
+            "type": "object"
+          },
+          "given": {
+            "type": "object"
+          },
+          "immutable_fields": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "minItems": 1,
+            "type": "array",
+            "uniqueItems": true
+          },
+          "scenario_id": {
+            "pattern": "^P0-[A-Z0-9]+(?:-[A-Z0-9]+)+$",
+            "type": "string"
+          },
+          "when": {
+            "oneOf": [
+              {
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "minProperties": 1,
+                "type": "object"
+              }
+            ]
+          }
+        },
+        "required": [
+          "scenario_id",
+          "contract_refs",
+          "given",
+          "when",
+          "expected",
+          "authority_source",
+          "immutable_fields"
+        ],
+        "type": "object"
+      },
+      "minItems": 1,
+      "type": "array"
+    }
+  },
+  "required": [
+    "fixture_family",
+    "contract_refs",
+    "scenarios"
+  ],
+  "title": "DDH Phase 0 Fixture Family",
+  "type": "object"
+}

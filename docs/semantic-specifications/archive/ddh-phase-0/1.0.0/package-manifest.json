@@ -1,0 +1,178 @@
+{
+  "assets": [
+    {
+      "path": "package-manifest.json",
+      "required": true,
+      "role": "package_manifest"
+    },
+    {
+      "path": "README.md",
+      "required": true,
+      "role": "package_guide"
+    },
+    {
+      "path": "completion-report.md",
+      "required": true,
+      "role": "completion_evidence"
+    },
+    {
+      "path": "task-specification-v1.md",
+      "required": true,
+      "role": "task_specification"
+    },
+    {
+      "path": "shared/vocabulary.md",
+      "required": true,
+      "role": "shared_vocabulary"
+    },
+    {
+      "path": "shared/contract-envelope-valid-example.json",
+      "required": true,
+      "role": "envelope_fixture"
+    },
+    {
+      "path": "shared/contract-envelope-rejected-example.json",
+      "required": true,
+      "role": "envelope_fixture"
+    },
+    {
+      "path": "shared/contract-envelope-expected-results.json",
+      "required": true,
+      "role": "expected_result"
+    },
+    {
+      "path": "contract-families/authority-scope-and-risk.md",
+      "required": true,
+      "role": "contract_family"
+    },
+    {
+      "path": "contract-families/context-coordination-and-candidate.md",
+      "required": true,
+      "role": "contract_family"
+    },
+    {
+      "path": "contract-families/test-verification-and-completion.md",
+      "required": true,
+      "role": "contract_family"
+    },
+    {
+      "path": "contract-families/recovery-learning-and-external.md",
+      "required": true,
+      "role": "contract_family"
+    },
+    {
+      "path": "contract-families/wire-identity-and-platform.md",
+      "required": true,
+      "role": "contract_family"
+    },
+    {
+      "path": "state-tables/authority-work-package-and-risk.md",
+      "required": true,
+      "role": "state_table"
+    },
+    {
+      "path": "state-tables/partition-candidate-and-handoff.md",
+      "required": true,
+      "role": "state_table"
+    },
+    {
+      "path": "state-tables/test-subject-verdict-and-completion.md",
+      "required": true,
+      "role": "state_table"
+    },
+    {
+      "path": "state-tables/recovery-learning-and-external.md",
+      "required": true,
+      "role": "state_table"
+    },
+    {
+      "path": "state-tables/wire-transport-and-identity.md",
+      "required": true,
+      "role": "state_table"
+    },
+    {
+      "path": "fixtures/authority-scope-and-risk.json",
+      "required": true,
+      "role": "fixture_family"
+    },
+    {
+      "path": "fixtures/context-coordination-and-candidate.json",
+      "required": true,
+      "role": "fixture_family"
+    },
+    {
+      "path": "fixtures/test-verification-and-completion.json",
+      "required": true,
+      "role": "fixture_family"
+    },
+    {
+      "path": "fixtures/recovery-learning-and-external.json",
+      "required": true,
+      "role": "fixture_family"
+    },
+    {
+      "path": "fixtures/wire-identity-and-platform.json",
+      "required": true,
+      "role": "fixture_family"
+    },
+    {
+      "path": "golden-flows/l1-serial-module.json",
+      "required": true,
+      "role": "golden_flow"
+    },
+    {
+      "path": "golden-flows/l2-parallel-subsystem.json",
+      "required": true,
+      "role": "golden_flow"
+    },
+    {
+      "path": "golden-flows/phase7a-external-simulator.json",
+      "required": true,
+      "role": "golden_flow"
+    },
+    {
+      "path": "traceability/contract-registry.json",
+      "required": true,
+      "role": "contract_registry"
+    },
+    {
+      "path": "traceability/traceability-matrix.md",
+      "required": true,
+      "role": "traceability"
+    },
+    {
+      "path": "traceability/coverage-matrix.json",
+      "required": true,
+      "role": "coverage_matrix"
+    },
+    {
+      "path": "validation/fixture-family.schema.json",
+      "required": true,
+      "role": "schema"
+    },
+    {
+      "path": "validation/contract-envelope-example.schema.json",
+      "required": true,
+      "role": "schema"
+    },
+    {
+      "path": "validation/validation-contract.md",
+      "required": true,
+      "role": "validation_contract"
+    },
+    {
+      "path": "validation/validate_phase0.py",
+      "required": true,
+      "role": "verification_asset"
+    },
+    {
+      "path": "phase-1-capability-derivation.md",
+      "required": true,
+      "role": "capability_derivation"
+    }
+  ],
+  "external_side_effects": "prohibited",
+  "package_id": "DDH-P0-FIXTURES",
+  "specification": "DDH-P0-SPEC-001@1.0.0",
+  "version": "1.0.0"
+}

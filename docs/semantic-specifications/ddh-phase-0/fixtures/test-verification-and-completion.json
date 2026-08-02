@@ -1,0 +1,993 @@
+{
+  "fixture_family": "P0-TEST-VERIFY-COMP",
+  "contract_refs": [
+    "P0-TEST-001",
+    "P0-TEST-002",
+    "P0-TEST-003",
+    "P0-TEST-004",
+    "P0-TEST-005",
+    "P0-TEST-006",
+    "P0-VERIFY-001",
+    "P0-VERIFY-002",
+    "P0-VERIFY-003",
+    "P0-VERIFY-004",
+    "P0-VERIFY-005",
+    "P0-VERIFY-006",
+    "P0-VERIFY-007",
+    "P0-COMP-001",
+    "P0-COMP-002",
+    "P0-COMP-003",
+    "P0-COMP-004",
+    "P0-COMP-005",
+    "P0-COMP-006"
+  ],
+  "scenarios": [
+    {
+      "scenario_id": "P0-TEST-S001",
+      "contract_refs": [
+        "P0-TEST-001",
+        "P0-TEST-002",
+        "P0-TEST-004"
+      ],
+      "given": {
+        "specification": "SPEC-WORKSPACE-1@3",
+        "required_scenarios": [
+          "WORKSPACE-PATH-SUCCESS",
+          "WORKSPACE-PATH-DUPLICATE"
+        ],
+        "discovered_assets": [
+          {
+            "asset_id": "asset-path-success@2",
+            "mapping": "WORKSPACE-PATH-SUCCESS",
+            "admission": "admitted",
+            "validity": "current"
+          },
+          {
+            "asset_id": "asset-path-duplicate@1",
+            "mapping": "WORKSPACE-PATH-DUPLICATE",
+            "admission": "admitted",
+            "validity": "current"
+          }
+        ]
+      },
+      "when": {
+        "action": "rebuild_inventory_and_publish_manifest"
+      },
+      "expected": {
+        "result": "manifest_published",
+        "selected_assets": [
+          "asset-path-success@2",
+          "asset-path-duplicate@1"
+        ],
+        "agent_required": false,
+        "inventory_is_authority": false
+      },
+      "authority_source": [
+        "DDH-P0-SPEC-001@1.1.0",
+        "Decision-0008",
+        "TAQG-ASSET-001",
+        "TAQG-MVE-001"
+      ],
+      "immutable_fields": [
+        "specification",
+        "required_scenarios",
+        "asset mappings",
+        "admission and validity requirements"
+      ]
+    },
+    {
+      "scenario_id": "P0-TEST-S002",
+      "contract_refs": [
+        "P0-TEST-001",
+        "P0-TEST-004"
+      ],
+      "given": {
+        "required_scenario": "WORKSPACE-PATH-ESCAPE-FAILURE",
+        "discovered_asset": {
+          "asset_id": "asset-path-escape-named-similarly@1",
+          "scenario_mapping": null,
+          "path_hint": "tests/path_escape_failure_test.py"
+        }
+      },
+      "when": {
+        "action": "attempt_formal_admission_from_discovery_name"
+      },
+      "expected": {
+        "result": "coverage_gap",
+        "asset_admitted": false,
+        "reason": "path_and_name_cannot_supply_authority_or_missing_mapping"
+      },
+      "authority_source": [
+        "Decision-0008",
+        "TAQG-ASSET-001"
+      ],
+      "immutable_fields": [
+        "required_scenario",
+        "mapping_requirement",
+        "admission_authority_boundary"
+      ]
+    },
+    {
+      "scenario_id": "P0-TEST-S003",
+      "contract_refs": [
+        "P0-TEST-003",
+        "P0-TEST-004"
+      ],
+      "given": {
+        "scope_layer": "Subsystem",
+        "facts": {
+          "shared_mutable_state": true,
+          "duplicate_delivery": true,
+          "specified_load_target": false,
+          "long_lived_process": false
+        },
+        "compiled_addons": {
+          "Idempotency": "required",
+          "Concurrency": "required",
+          "Performance and Load": "not_applicable_with_business_reason",
+          "Long-running and Soak": "not_applicable_with_business_reason"
+        }
+      },
+      "when": {
+        "action": "pin_quality_contract_before_admission"
+      },
+      "expected": {
+        "result": "quality_contract_pinned",
+        "conditional_remaining": 0,
+        "load_or_soak_invented_from_layer": false
+      },
+      "authority_source": [
+        "Decision-0020",
+        "TAQG-QUAL-001"
+      ],
+      "immutable_fields": [
+        "scope_layer",
+        "quality_addon_applicability",
+        "product_threshold_sources"
+      ]
+    },
+    {
+      "scenario_id": "P0-TEST-S004",
+      "contract_refs": [
+        "P0-TEST-004"
+      ],
+      "given": {
+        "fixed_oracle": "duplicate file-change event creates exactly one manifest-index entry",
+        "asset_change": {
+          "operation": "widen_expected_value",
+          "before": 1,
+          "after": [
+            1,
+            2
+          ]
+        },
+        "proposer": "implementation_agent"
+      },
+      "when": {
+        "action": "run_mechanical_acceptance_guard"
+      },
+      "expected": {
+        "result": "rejected_acceptance_weakening",
+        "new_asset_admitted": false,
+        "false_allow": false,
+        "requires_specification_amendment": true
+      },
+      "authority_source": [
+        "Decision-0008",
+        "TAQG-QUAL-001",
+        "TAQG-PORT-001"
+      ],
+      "immutable_fields": [
+        "fixed_oracle",
+        "required_case",
+        "anti_weakening_rules"
+      ]
+    },
+    {
+      "scenario_id": "P0-TEST-S005",
+      "contract_refs": [
+        "P0-TEST-002",
+        "P0-TEST-005"
+      ],
+      "given": {
+        "asset": {
+          "asset_id": "asset-path-normalizer@4",
+          "admission": "admitted",
+          "semantic_validity": "current",
+          "candidate_execution": "passed"
+        },
+        "change": "product_source_only",
+        "specification_changed": false,
+        "fixture_or_helper_changed": false
+      },
+      "when": {
+        "action": "evaluate_currentness_for_new_candidate"
+      },
+      "expected": {
+        "result": "rerun_required",
+        "semantic_validity": "current",
+        "candidate_execution": "not_run",
+        "false_stale": false
+      },
+      "authority_source": [
+        "Decision-0008",
+        "TAQG-QUAL-003"
+      ],
+      "immutable_fields": [
+        "three_axis_semantics",
+        "specification_mapping",
+        "asset_dependency_identity"
+      ]
+    },
+    {
+      "scenario_id": "P0-TEST-S006",
+      "contract_refs": [
+        "P0-TEST-004",
+        "P0-TEST-005",
+        "P0-VERIFY-004"
+      ],
+      "given": {
+        "specification_oracle": "failed path resolution does not add a manifest-index row",
+        "observed_failure": "fixture queried a different manifest entry",
+        "oracle_is_unambiguous": true
+      },
+      "when": {
+        "action": "classify_and_repair_test_asset"
+      },
+      "expected": {
+        "classification": "test_implementation_defect",
+        "action": "propose_new_asset_version_and_repeat_independent_admission",
+        "product_source_modified": false,
+        "formal_pass_from_diagnostic_run": false
+      },
+      "authority_source": [
+        "Decision-0008",
+        "RC-MVE-TAQG-006"
+      ],
+      "immutable_fields": [
+        "specification_oracle",
+        "independent_admission",
+        "proposer_cannot_self_admit"
+      ]
+    },
+    {
+      "scenario_id": "P0-TEST-S007",
+      "contract_refs": [
+        "P0-TEST-004",
+        "P0-VERIFY-004"
+      ],
+      "given": {
+        "asset_status": "admitted_current",
+        "runner_self_check": "passed",
+        "oracle": "tax total equals 120",
+        "actual": 119
+      },
+      "when": {
+        "action": "classify_observed_assertion_failure"
+      },
+      "expected": {
+        "classification": "product_failure",
+        "route": "product_repair",
+        "test_oracle_mutation_allowed": false
+      },
+      "authority_source": [
+        "MVE-RESULT-001",
+        "MVE-VERDICT-001"
+      ],
+      "immutable_fields": [
+        "oracle",
+        "asset_status",
+        "failure_classification_rules"
+      ]
+    },
+    {
+      "scenario_id": "P0-VERIFY-S001",
+      "contract_refs": [
+        "P0-VERIFY-001",
+        "P0-VERIFY-002",
+        "P0-VERIFY-007"
+      ],
+      "given": {
+        "subject": "verify-subject-17",
+        "identities_match": true,
+        "required_results": [
+          "module",
+          "subsystem",
+          "linux",
+          "windows"
+        ],
+        "results": {
+          "module": "passed",
+          "subsystem": "passed",
+          "linux": "passed",
+          "windows": "passed"
+        },
+        "subject_current": true
+      },
+      "when": {
+        "action": "aggregate_subject_verdict"
+      },
+      "expected": {
+        "acceptance_outcome": "passed",
+        "verification_completeness": "complete",
+        "publication": "mechanical_verification_passed"
+      },
+      "authority_source": [
+        "CIM-MVE-001",
+        "MVE-VERDICT-001"
+      ],
+      "immutable_fields": [
+        "subject",
+        "required_results",
+        "result_identity",
+        "required_platforms"
+      ]
+    },
+    {
+      "scenario_id": "P0-VERIFY-S002",
+      "contract_refs": [
+        "P0-VERIFY-001",
+        "P0-VERIFY-003",
+        "P0-VERIFY-007"
+      ],
+      "given": {
+        "subject": "verify-subject-18",
+        "required_shard": "shard-3",
+        "received_result_subject": "verify-subject-17",
+        "result": "passed"
+      },
+      "when": {
+        "action": "validate_result_identity"
+      },
+      "expected": {
+        "result": "result_identity_mismatch_rejected",
+        "acceptance_outcome": "undetermined",
+        "verification_completeness": "incomplete",
+        "publication": null
+      },
+      "authority_source": [
+        "MVE-PROTO-001",
+        "MVE-VERDICT-001"
+      ],
+      "immutable_fields": [
+        "subject",
+        "required_shard",
+        "result_identity"
+      ]
+    },
+    {
+      "scenario_id": "P0-VERIFY-S003",
+      "contract_refs": [
+        "P0-VERIFY-003",
+        "P0-VERIFY-005",
+        "P0-VERIFY-007"
+      ],
+      "given": {
+        "subject": "verify-subject-19",
+        "invocation": "invocation-linux-2",
+        "first_delivery": "timeout",
+        "duplicate_delivery": "timeout",
+        "recovery_information": "new_clean_runner_environment",
+        "recovery_delivery": "passed"
+      },
+      "when": {
+        "action": "deduplicate_then_recover_exact_subject"
+      },
+      "expected": {
+        "duplicate_counted_once": true,
+        "timeout_classification": "runner_environment_failure",
+        "recovery_action": "new_environment_generation",
+        "final_invocation_result": "passed",
+        "agent_required": false
+      },
+      "authority_source": [
+        "RC-MVE-004",
+        "MVE-PROTO-001",
+        "Decision-0021"
+      ],
+      "immutable_fields": [
+        "subject",
+        "suite_and_shard",
+        "oracle",
+        "recovery_budget"
+      ]
+    },
+    {
+      "scenario_id": "P0-VERIFY-S004",
+      "contract_refs": [
+        "P0-VERIFY-001",
+        "P0-VERIFY-007",
+        "P0-COMP-006"
+      ],
+      "given": {
+        "subject": "verify-subject-20",
+        "all_required_results": "passed",
+        "publication_pending": true,
+        "invalidation_event": {
+          "kind": "fixture_changed",
+          "new_epoch": 8
+        },
+        "subject_epoch": 7
+      },
+      "when": {
+        "action": "reconcile_before_pass_publication"
+      },
+      "expected": {
+        "acceptance_outcome": "undetermined",
+        "verification_completeness": "invalidated",
+        "publication": null,
+        "next_action": "build_new_manifest_and_subject"
+      },
+      "authority_source": [
+        "DDH-INV-001",
+        "MVE-VERDICT-001"
+      ],
+      "immutable_fields": [
+        "subject_epoch",
+        "current_epoch",
+        "invalidation_precedence"
+      ]
+    },
+    {
+      "scenario_id": "P0-VERIFY-S005",
+      "contract_refs": [
+        "P0-VERIFY-005"
+      ],
+      "given": {
+        "declared_duration_seconds": null,
+        "historical_p95_seconds": null,
+        "reliable_estimate_seconds": null,
+        "legacy_fixed_timeout_seconds": 30,
+        "actual_duration_seconds": 60
+      },
+      "when": {
+        "action": "compile_bootstrap_execution_deadline"
+      },
+      "expected": {
+        "hard_deadline_seconds": 600,
+        "legacy_timeout_used": false,
+        "execution_result": "not_killed_at_30_seconds"
+      },
+      "authority_source": [
+        "Decision-0009",
+        "Decision-0021"
+      ],
+      "immutable_fields": [
+        "timeout_formula",
+        "bootstrap_deadline",
+        "business_threshold"
+      ]
+    },
+    {
+      "scenario_id": "P0-VERIFY-S006",
+      "contract_refs": [
+        "P0-VERIFY-005"
+      ],
+      "given": {
+        "trustworthy_progress_signal": true,
+        "expected_progress_interval_seconds": 30,
+        "last_progress_age_seconds": 121,
+        "execution_deadline_remaining": true
+      },
+      "when": {
+        "action": "evaluate_no_progress"
+      },
+      "expected": {
+        "no_progress_deadline_seconds": 120,
+        "result": "terminate_as_execution_incomplete",
+        "classification": "runner_environment_failure",
+        "product_failure": false,
+        "deadline_extension_allowed": false
+      },
+      "authority_source": [
+        "Decision-0009",
+        "Decision-0021"
+      ],
+      "immutable_fields": [
+        "progress_signal_trust",
+        "no_progress_formula",
+        "classification_boundary"
+      ]
+    },
+    {
+      "scenario_id": "P0-VERIFY-S007",
+      "contract_refs": [
+        "P0-VERIFY-002",
+        "P0-VERIFY-007"
+      ],
+      "given": {
+        "estimated_required_seconds": 4200,
+        "remaining_verification_seconds": 2400,
+        "required_suites": [
+          "module",
+          "subsystem",
+          "recovery"
+        ],
+        "required_thresholds": {
+          "recovery_loss": 0
+        }
+      },
+      "when": {
+        "action": "plan_required_verification"
+      },
+      "expected": {
+        "result": "verification_plan_not_ready",
+        "execution_started": false,
+        "required_suites_removed": [],
+        "thresholds_changed": false,
+        "permitted_next_actions": [
+          "cache",
+          "shard",
+          "parallelize",
+          "approved_equivalent_runner",
+          "budget_conflict_report"
+        ]
+      },
+      "authority_source": [
+        "Decision-0020",
+        "Decision-0021",
+        "MVE-EXEC-001"
+      ],
+      "immutable_fields": [
+        "required_suites",
+        "required_thresholds",
+        "verification_budget"
+      ]
+    },
+    {
+      "scenario_id": "P0-VERIFY-S008",
+      "contract_refs": [
+        "P0-VERIFY-003",
+        "P0-VERIFY-006",
+        "P0-VERIFY-007"
+      ],
+      "given": {
+        "structured_terminal_result": "failed",
+        "stdout_lines": 1000000,
+        "repeated_traceback_fingerprint": "fixture-db-connection",
+        "required_identity_facts_available": true,
+        "outside_scope_failure_available": true
+      },
+      "when": {
+        "action": "drain_cluster_and_aggregate_output"
+      },
+      "expected": {
+        "terminal_result": "failed",
+        "output_bounded": true,
+        "tracebacks_clustered": true,
+        "outside_scope_failure_preserved": true,
+        "agent_context_contains_full_output": false,
+        "token_cost_for_routine_clustering": 0
+      },
+      "authority_source": [
+        "MVE-OBS-001",
+        "MVE-PROTO-001"
+      ],
+      "immutable_fields": [
+        "terminal_result",
+        "tier_zero_facts",
+        "outside_scope_issue",
+        "output_limits"
+      ]
+    },
+    {
+      "scenario_id": "P0-VERIFY-S009",
+      "contract_refs": [
+        "P0-VERIFY-003",
+        "P0-VERIFY-007"
+      ],
+      "given": {
+        "subject": "verify-subject-21",
+        "required_results": {
+          "module": "failed_product",
+          "linux": "platform_blocked",
+          "windows": "passed"
+        }
+      },
+      "when": {
+        "action": "aggregate_mixed_subject_outcomes"
+      },
+      "expected": {
+        "acceptance_outcome": "failed",
+        "verification_completeness": "blocked",
+        "blocking_issues": [
+          "product_failure",
+          "platform_blocker"
+        ],
+        "publication": null
+      },
+      "authority_source": [
+        "MVE-RESULT-001",
+        "MVE-VERDICT-001"
+      ],
+      "immutable_fields": [
+        "required_result_universe",
+        "two_axis_verdict",
+        "mixed_issue_preservation"
+      ]
+    },
+    {
+      "scenario_id": "P0-VERIFY-S010",
+      "contract_refs": [
+        "P0-VERIFY-003",
+        "P0-VERIFY-007"
+      ],
+      "given": {
+        "synthetic_required_references": 10000,
+        "shards": 200,
+        "delivery": "duplicate_late_out_of_order",
+        "all_unique_current_results": "passed",
+        "invalidation": false
+      },
+      "when": {
+        "action": "deterministically_reduce_required_result_matrix"
+      },
+      "expected": {
+        "acceptance_outcome": "passed",
+        "verification_completeness": "complete",
+        "unique_references_counted": 10000,
+        "duplicate_results_double_counted": false,
+        "agent_required": false,
+        "permanent_10000_item_artifact_created": false
+      },
+      "authority_source": [
+        "DDH-P0-SPEC-001@1.1.0",
+        "MVE-PROTO-001",
+        "MVE-VERDICT-001"
+      ],
+      "immutable_fields": [
+        "required_reference_set",
+        "identity_deduplication",
+        "pass_closure"
+      ]
+    },
+    {
+      "scenario_id": "P0-COMP-S001",
+      "contract_refs": [
+        "P0-COMP-001",
+        "P0-COMP-002"
+      ],
+      "given": {
+        "goal_and_scenarios_closed": true,
+        "candidate": "candidate-wp-31",
+        "mechanical_verification": "passed_complete_current",
+        "diff_within_scope": true,
+        "required_assets": "admitted_current",
+        "exceptions": [],
+        "impact_unknown": false
+      },
+      "when": {
+        "action": "evaluate_work_package_completion"
+      },
+      "expected": {
+        "result": "work_package_completed",
+        "subsystem_integrated": false,
+        "higher_state_auto_promoted": false
+      },
+      "authority_source": [
+        "DDH-COMP-001"
+      ],
+      "immutable_fields": [
+        "goal_and_scenarios",
+        "candidate",
+        "verification_verdict",
+        "scope",
+        "completion_level"
+      ]
+    },
+    {
+      "scenario_id": "P0-COMP-S002",
+      "contract_refs": [
+        "P0-COMP-001",
+        "P0-COMP-003",
+        "P0-COMP-006"
+      ],
+      "given": {
+        "module_work_packages": {
+          "path_normalizer": "completed",
+          "manifest_loader": "completed",
+          "manifest_index": "completed"
+        },
+        "module_candidate_identities": [
+          "candidate-path-normalizer-7",
+          "candidate-manifest-loader-8",
+          "candidate-manifest-index-3"
+        ],
+        "integrated_candidate": null
+      },
+      "when": {
+        "action": "evaluate_subsystem_integration"
+      },
+      "expected": {
+        "result": "not_ready",
+        "subsystem_integrated": false,
+        "module_work_packages_revoked": [],
+        "reason": "child_completions_from_isolated_candidates_cannot_be_combined"
+      },
+      "authority_source": [
+        "DDH-COMP-001"
+      ],
+      "immutable_fields": [
+        "module_candidate_identities",
+        "same_integrated_candidate_requirement",
+        "layer_separation"
+      ]
+    },
+    {
+      "scenario_id": "P0-COMP-S003",
+      "contract_refs": [
+        "P0-COMP-003",
+        "P0-COMP-006"
+      ],
+      "given": {
+        "integrated_candidate": "workspace-integrated-4",
+        "module_regressions": "passed",
+        "subsystem_scenario": "path normalization updates manifest and index",
+        "subsystem_result": "manifest-index entry missing",
+        "lower_module_contracts_still_proven": true
+      },
+      "when": {
+        "action": "evaluate_and_route_integration_failure"
+      },
+      "expected": {
+        "subsystem_integrated": false,
+        "route": "higher_layer_integration_repair",
+        "lower_completions_invalidated": [],
+        "domain_accepted": false
+      },
+      "authority_source": [
+        "DDH-COMP-001"
+      ],
+      "immutable_fields": [
+        "integrated_candidate",
+        "subsystem_scenario",
+        "lower_layer_invalidation_rule"
+      ]
+    },
+    {
+      "scenario_id": "P0-COMP-S004",
+      "contract_refs": [
+        "P0-VERIFY-004",
+        "P0-COMP-002",
+        "P0-COMP-004"
+      ],
+      "given": {
+        "planned_write_scope": [
+          "PortableWorkspace"
+        ],
+        "actual_change": "PathNormalizer canonical-path event",
+        "system_map_reverse_dependent": "ManifestLoader",
+        "live_source_confirms_dependency": true,
+        "reporting_regression": "failed",
+        "repair_requires_reporting_write": true
+      },
+      "when": {
+        "action": "assess_impact_and_completion"
+      },
+      "expected": {
+        "failure_classification": "product_failure",
+        "impact_scope_assessment": "write_scope_expansion_required",
+        "verification_closure_includes": [
+          "Reporting"
+        ],
+        "write_permission_added": false,
+        "work_package_completed": false,
+        "required_route": "versioned_scope_update_proposal"
+      },
+      "authority_source": [
+        "MVE-RESULT-001",
+        "DDH-COMP-001"
+      ],
+      "immutable_fields": [
+        "planned_write_scope",
+        "expected_behavior",
+        "system_map_non_authority",
+        "write_authority_boundary"
+      ]
+    },
+    {
+      "scenario_id": "P0-COMP-S005",
+      "contract_refs": [
+        "P0-COMP-004",
+        "P0-COMP-005"
+      ],
+      "given": {
+        "workspace_subsystem": "integrated",
+        "domain_plugin_discovery_workflow": "failed_index_rebuild",
+        "release_checks": "not_evaluated"
+      },
+      "when": {
+        "action": "evaluate_domain_and_release_layers"
+      },
+      "expected": {
+        "workspace_subsystem_integrated": true,
+        "domain_accepted": false,
+        "release_candidate": false,
+        "route": "domain_repair"
+      },
+      "authority_source": [
+        "DDH-COMP-001"
+      ],
+      "immutable_fields": [
+        "domain_workflow",
+        "domain_invariants",
+        "completion_layer_separation"
+      ]
+    },
+    {
+      "scenario_id": "P0-COMP-S006",
+      "contract_refs": [
+        "P0-COMP-005"
+      ],
+      "given": {
+        "release_candidate_requirements": "passed_complete_current",
+        "required_platform_matrix": "passed",
+        "requested_next_action": "production_deployment",
+        "external_operation_approval": null
+      },
+      "when": {
+        "action": "publish_release_candidate_and_evaluate_external_authority"
+      },
+      "expected": {
+        "release_candidate": true,
+        "deployment_started": false,
+        "external_operation_state": "approval_required"
+      },
+      "authority_source": [
+        "DDH-COMP-001",
+        "Decision-0024"
+      ],
+      "immutable_fields": [
+        "release_requirements",
+        "external_authority_boundary",
+        "exact_operation_approval"
+      ]
+    },
+    {
+      "scenario_id": "P0-COMP-S007",
+      "contract_refs": [
+        "P0-COMP-006"
+      ],
+      "given": {
+        "completion_level": "subsystem",
+        "candidate": "workspace-integrated-9",
+        "events": [
+          "child-complete-path-normalizer",
+          "child-complete-manifest-loader",
+          "child-complete-path-normalizer",
+          "late-child-complete-old-manifest-index",
+          "child-complete-manifest-index-current"
+        ],
+        "canonical_current_children": [
+          "path-normalizer-current",
+          "manifest-loader-current",
+          "manifest-index-current"
+        ],
+        "judge_restart": true
+      },
+      "when": {
+        "action": "rebuild_and_reconcile_completion_from_current_facts"
+      },
+      "expected": {
+        "duplicate_counted_once": true,
+        "late_old_generation_ignored": true,
+        "decision_independent_of_event_order": true,
+        "historical_pass_receipt_required": false,
+        "agent_required": false
+      },
+      "authority_source": [
+        "DDH-COMP-001",
+        "DDH-INV-001"
+      ],
+      "immutable_fields": [
+        "canonical_current_children",
+        "candidate",
+        "idempotency_and_generation_rules"
+      ]
+    },
+    {
+      "scenario_id": "P0-COMP-S008",
+      "contract_refs": [
+        "P0-TEST-006",
+        "P0-VERIFY-006",
+        "P0-VERIFY-007",
+        "P0-COMP-006"
+      ],
+      "given": {
+        "work_packages": 500,
+        "events": "duplicate_late_out_of_order",
+        "candidate_identities": "mixed_until_reconciled",
+        "raw_logs_retained": false
+      },
+      "when": {
+        "action": "stress_reconcile_layered_completion"
+      },
+      "expected": {
+        "false_upper_layer_promotion": false,
+        "mixed_candidates_combined": false,
+        "deterministic": true,
+        "bounded": true,
+        "agent_token_cost": 0,
+        "permanent_pass_receipts_created": false
+      },
+      "authority_source": [
+        "DDH-P0-SPEC-001@1.1.0",
+        "DDH-COMP-001"
+      ],
+      "immutable_fields": [
+        "candidate_identity_rules",
+        "completion_level_requirements",
+        "retention_semantics"
+      ]
+    },
+    {
+      "scenario_id": "P0-COMP-S009",
+      "contract_refs": [
+        "P0-COMP-003"
+      ],
+      "given": {
+        "affected_module_regressions": "passed_complete_current",
+        "module_contracts": "passed",
+        "required_module_work_packages": [
+          "path-normalizer-current",
+          "manifest-loader-current",
+          "manifest-index-current"
+        ],
+        "same_integrated_candidate": "workspace-integrated-10",
+        "subsystem_business_boundary_recovery_and_stress": "passed_complete_current"
+      },
+      "when": {
+        "action": "evaluate_subsystem_integration"
+      },
+      "expected": {
+        "domain_accepted": false,
+        "module_work_packages_remain_completed": true,
+        "outcome": "subsystem_integrated",
+        "subsystem_integrated": true
+      },
+      "authority_source": [
+        "DDH-COMP-001"
+      ],
+      "immutable_fields": [
+        "same_integrated_candidate",
+        "required_module_set",
+        "subsystem_acceptance",
+        "completion_layer_separation"
+      ]
+    },
+    {
+      "scenario_id": "P0-COMP-S010",
+      "contract_refs": [
+        "P0-COMP-002",
+        "P0-COMP-003"
+      ],
+      "given": {
+        "child_verification_subjects": "passed_complete_current",
+        "integrated_candidate": "workspace-integrated-10",
+        "required_child_work_packages": [
+          "path-normalizer-current",
+          "manifest-loader-current",
+          "manifest-index-current"
+        ],
+        "work_package_candidate_bindings": "same_integrated_candidate"
+      },
+      "when": {
+        "action": "publish_and_join_child_work_package_completions"
+      },
+      "expected": {
+        "child_work_packages_completed": 3,
+        "outcome": "children_ready_for_subsystem_evaluation",
+        "subsystem_integrated": false
+      },
+      "authority_source": [
+        "DDH-COMP-001"
+      ],
+      "immutable_fields": [
+        "integrated_candidate",
+        "required_child_set",
+        "child_verification_subjects",
+        "completion_layer_separation"
+      ]
+    }
+  ]
+}

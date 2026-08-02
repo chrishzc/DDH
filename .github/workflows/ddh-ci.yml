@@ -1,0 +1,104 @@
+name: DDH CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      run_windows_11:
+        description: Run the trusted Windows 11 self-hosted profile
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+env:
+  GIT_CONFIG_COUNT: 1
+  GIT_CONFIG_KEY_0: core.autocrlf
+  GIT_CONFIG_VALUE_0: "false"
+
+jobs:
+  required-ubuntu:
+    name: Required Ubuntu 24.04 / Python 3.13
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      PYTHONPATH: src
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Compile runtime
+        run: python -m compileall -q src
+      - name: Run unit, contract, and integration verification
+        run: python -m unittest discover -s tests -v
+      - name: Validate Phase 0 package
+        run: python docs/semantic-specifications/ddh-phase-0/validation/validate_phase0.py
+      - name: Validate Phase 1 package
+        run: python docs/semantic-specifications/ddh-phase-1/draft/validation/validate_phase1_spec.py
+
+  required-windows-11:
+    name: Required Windows 11 / Python 3.13
+    if: >-
+      github.event_name == 'workflow_dispatch' &&
+      inputs.run_windows_11 &&
+      github.actor == 'chrishzc'
+    runs-on:
+      - self-hosted
+      - Windows
+      - X64
+      - ddh-windows-11
+    timeout-minutes: 30
+    env:
+      PYTHONPATH: src
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          architecture: x64
+      - name: Compile runtime
+        run: python -m compileall -q src
+      - name: Run unit, contract, and integration verification
+        run: python -m unittest discover -s tests -v
+      - name: Validate Phase 0 package
+        run: python docs/semantic-specifications/ddh-phase-0/validation/validate_phase0.py
+      - name: Validate Phase 1 package
+        run: python docs/semantic-specifications/ddh-phase-1/draft/validation/validate_phase1_spec.py
+
+  latest-stable-compatibility:
+    name: Latest stable / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    env:
+      PYTHONPATH: src
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - windows-2022
+          - ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: Compile runtime
+        run: python -m compileall -q src
+      - name: Run unit, contract, and integration verification
+        run: python -m unittest discover -s tests -v
+      - name: Validate Phase 0 package
+        run: python docs/semantic-specifications/ddh-phase-0/validation/validate_phase0.py
+      - name: Validate Phase 1 package
+        run: python docs/semantic-specifications/ddh-phase-1/draft/validation/validate_phase1_spec.py

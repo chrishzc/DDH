@@ -1,0 +1,551 @@
+{
+  "contract_refs": [
+    "docs/decisions/0016-json-contract-envelope-v1.md",
+    "docs/decisions/0017-minimal-typed-identity-references.md",
+    "docs/decisions/0022-mvp-supported-platform-matrix.md"
+  ],
+  "fixture_family": "wire-identity-and-platform",
+  "scenarios": [
+    {
+      "authority_source": "Decision 0016",
+      "contract_refs": [
+        "docs/decisions/0016-json-contract-envelope-v1.md"
+      ],
+      "expected": {
+        "outcome": "accepted",
+        "trusted_identity_source": "execution_channel"
+      },
+      "given": {
+        "common_fields_complete": true,
+        "payload_schema_valid": true,
+        "utf8_strict": true
+      },
+      "immutable_fields": [
+        "protocol_version",
+        "message_type",
+        "subject"
+      ],
+      "scenario_id": "P0-WIRE-001",
+      "when": {
+        "event": "consume_message"
+      }
+    },
+    {
+      "authority_source": "Decision 0016",
+      "contract_refs": [
+        "docs/decisions/0016-json-contract-envelope-v1.md"
+      ],
+      "expected": {
+        "outcome": "rejected",
+        "reason_code": "protocol_incompatible"
+      },
+      "given": {
+        "protocol_version": "2.0.0",
+        "supported_major": 1
+      },
+      "immutable_fields": [
+        "supported_protocol_major"
+      ],
+      "scenario_id": "P0-WIRE-002",
+      "when": {
+        "event": "consume_message"
+      }
+    },
+    {
+      "authority_source": "Decision 0016",
+      "contract_refs": [
+        "docs/decisions/0016-json-contract-envelope-v1.md"
+      ],
+      "expected": {
+        "outcome": "rejected",
+        "reason_code": "unknown_authoritative_field"
+      },
+      "given": {
+        "unknown_core_field": true
+      },
+      "immutable_fields": [
+        "envelope_schema",
+        "payload_schema"
+      ],
+      "scenario_id": "P0-WIRE-003",
+      "when": {
+        "event": "schema_validation"
+      }
+    },
+    {
+      "authority_source": "Decision 0016",
+      "contract_refs": [
+        "docs/decisions/0016-json-contract-envelope-v1.md"
+      ],
+      "expected": {
+        "outcome": "rejected",
+        "reason_code": "duplicate_json_key"
+      },
+      "given": {
+        "duplicate_key": "message_id"
+      },
+      "immutable_fields": [
+        "strict_json_parse_policy"
+      ],
+      "scenario_id": "P0-WIRE-004",
+      "when": {
+        "event": "parse_json"
+      }
+    },
+    {
+      "authority_source": "Decision 0016",
+      "contract_refs": [
+        "docs/decisions/0016-json-contract-envelope-v1.md"
+      ],
+      "expected": {
+        "formal_result_consumed": false,
+        "outcome": "incomplete"
+      },
+      "given": {
+        "result_json_exists": false,
+        "result_pending_exists": true
+      },
+      "immutable_fields": [
+        "atomic_result_rule"
+      ],
+      "scenario_id": "P0-WIRE-005",
+      "when": {
+        "event": "backend_crash"
+      }
+    },
+    {
+      "authority_source": "Decision 0017",
+      "contract_refs": [
+        "docs/decisions/0017-minimal-typed-identity-references.md"
+      ],
+      "expected": {
+        "outcome": "rejected",
+        "reason_code": "authority_digest_drift"
+      },
+      "given": {
+        "id_equal": true,
+        "version_equal": true,
+        "content_digest_equal": false
+      },
+      "immutable_fields": [
+        "versioned_authority_reference"
+      ],
+      "scenario_id": "P0-ID-001",
+      "when": {
+        "event": "handoff_validation"
+      }
+    },
+    {
+      "authority_source": "Decision 0017",
+      "contract_refs": [
+        "docs/decisions/0017-minimal-typed-identity-references.md"
+      ],
+      "expected": {
+        "candidate_changed": false,
+        "outcome": "stale"
+      },
+      "given": {
+        "current_generation": 4,
+        "submitted_generation": 3
+      },
+      "immutable_fields": [
+        "partition_generation",
+        "candidate_generation"
+      ],
+      "scenario_id": "P0-ID-002",
+      "when": {
+        "event": "patch_admission"
+      }
+    },
+    {
+      "authority_source": "Decision 0017",
+      "contract_refs": [
+        "docs/decisions/0017-minimal-typed-identity-references.md"
+      ],
+      "expected": {
+        "new_invocation_required": true,
+        "outcome": "accepted",
+        "subject_changes": false
+      },
+      "given": {
+        "retry_safe": true,
+        "subject_current": true
+      },
+      "immutable_fields": [
+        "verification_subject",
+        "invocation_uniqueness"
+      ],
+      "scenario_id": "P0-ID-003",
+      "when": {
+        "event": "retry_requested"
+      }
+    },
+    {
+      "authority_source": "Decision 0022",
+      "contract_refs": [
+        "docs/decisions/0022-mvp-supported-platform-matrix.md"
+      ],
+      "expected": {
+        "content_identity_equal": true,
+        "outcome": "accepted"
+      },
+      "given": {
+        "artifact_encoding": "UTF-8",
+        "platforms": [
+          "windows-11-x86_64",
+          "ubuntu-24.04-x86_64"
+        ],
+        "repository_path": "fixtures/路徑.json"
+      },
+      "immutable_fields": [
+        "logical_path",
+        "artifact_bytes"
+      ],
+      "scenario_id": "P0-PLAT-001",
+      "when": {
+        "event": "cross_platform_conformance"
+      }
+    },
+    {
+      "authority_source": "Decision 0022",
+      "contract_refs": [
+        "docs/decisions/0022-mvp-supported-platform-matrix.md"
+      ],
+      "expected": {
+        "outcome": "incomplete",
+        "satisfies_release_matrix": false
+      },
+      "given": {
+        "only_result_platform": "macos-arm64-preview"
+      },
+      "immutable_fields": [
+        "required_platform_matrix"
+      ],
+      "scenario_id": "P0-PLAT-002",
+      "when": {
+        "event": "release_matrix_evaluation"
+      }
+    },
+    {
+      "authority_source": "Decisions 0016 and 0022",
+      "contract_refs": [
+        "docs/decisions/0016-json-contract-envelope-v1.md",
+        "docs/decisions/0022-mvp-supported-platform-matrix.md"
+      ],
+      "expected": {
+        "control_result_valid": true,
+        "diagnostic_truncated": true,
+        "outcome": "accepted"
+      },
+      "given": {
+        "stdout_bytes": 100000000
+      },
+      "immutable_fields": [
+        "formal_result_channel",
+        "output_cap"
+      ],
+      "scenario_id": "P0-PLAT-003",
+      "when": {
+        "event": "backend_result_collection"
+      }
+    },
+    {
+      "authority_source": "Decision 0016",
+      "contract_refs": [
+        "docs/decisions/0016-json-contract-envelope-v1.md"
+      ],
+      "expected": {
+        "canonical_bytes_equal": true,
+        "digest_algorithm": "sha256",
+        "digest_equal": true,
+        "outcome": "accepted"
+      },
+      "given": {
+        "fixture": "unicode_decimal_contract",
+        "implementations": [
+          "python",
+          "rust",
+          "go"
+        ]
+      },
+      "immutable_fields": [
+        "rfc8785_canonicalization",
+        "digest_algorithm",
+        "fixture_bytes"
+      ],
+      "scenario_id": "P0-WIRE-006",
+      "when": {
+        "event": "cross_language_digest_conformance"
+      }
+    },
+    {
+      "authority_source": "Decision 0016",
+      "contract_refs": [
+        "docs/decisions/0016-json-contract-envelope-v1.md"
+      ],
+      "expected": {
+        "outcome": "rejected",
+        "reason_code": "protocol_invalid_enum"
+      },
+      "given": {
+        "terminal_state": "probably_passed"
+      },
+      "immutable_fields": [
+        "authoritative_enum",
+        "unknown_enum_fail_closed"
+      ],
+      "scenario_id": "P0-WIRE-007",
+      "when": {
+        "event": "payload_validation"
+      }
+    },
+    {
+      "authority_source": "Decision 0016",
+      "contract_refs": [
+        "docs/decisions/0016-json-contract-envelope-v1.md"
+      ],
+      "expected": {
+        "allocation_bounded": true,
+        "outcome": "rejected",
+        "reason_code": "protocol_resource_limit"
+      },
+      "given": {
+        "one_or_more_limits_exceeded": [
+          "payload_bytes",
+          "nesting_depth",
+          "array_length",
+          "string_length"
+        ]
+      },
+      "immutable_fields": [
+        "parser_resource_limits"
+      ],
+      "scenario_id": "P0-WIRE-008",
+      "when": {
+        "event": "bounded_parse"
+      }
+    },
+    {
+      "authority_source": "Decision 0016",
+      "contract_refs": [
+        "docs/decisions/0016-json-contract-envelope-v1.md"
+      ],
+      "expected": {
+        "cross_directory_reads": 0,
+        "cross_work_package_absorption": 0,
+        "outcome": "accepted",
+        "permanent_10000_directory_artifact": false
+      },
+      "given": {
+        "synthetic_invocations": 10000,
+        "transport": "isolated_invocation_directory"
+      },
+      "immutable_fields": [
+        "invocation_directory_binding",
+        "work_package_binding"
+      ],
+      "scenario_id": "P0-WIRE-009",
+      "when": {
+        "event": "concurrent_transport_stress"
+      }
+    },
+    {
+      "authority_source": "Decision 0016",
+      "contract_refs": [
+        "docs/decisions/0016-json-contract-envelope-v1.md"
+      ],
+      "expected": {
+        "harness_crash": false,
+        "model_call": false,
+        "outcome": "rejected",
+        "resource_use": "bounded"
+      },
+      "given": {
+        "fuzz_classes": [
+          "malformed_utf8",
+          "truncated_json",
+          "unexpected_type",
+          "adversarial_nesting"
+        ]
+      },
+      "immutable_fields": [
+        "strict_parse",
+        "resource_limits"
+      ],
+      "scenario_id": "P0-WIRE-010",
+      "when": {
+        "event": "fuzz_input"
+      }
+    },
+    {
+      "authority_source": "Decisions 0016 and 0017",
+      "contract_refs": [
+        "docs/decisions/0016-json-contract-envelope-v1.md",
+        "docs/decisions/0017-minimal-typed-identity-references.md"
+      ],
+      "expected": {
+        "current_result_replaced_by_arrival_order": false,
+        "duplicate_current_result": "idempotent",
+        "late_old_generation": "stale",
+        "outcome": "accepted"
+      },
+      "given": {
+        "delivery": [
+          "duplicate_current",
+          "late_old_generation",
+          "out_of_order_current"
+        ]
+      },
+      "immutable_fields": [
+        "subject_reference",
+        "generation",
+        "invocation_id"
+      ],
+      "scenario_id": "P0-ID-004",
+      "when": {
+        "event": "result_reconciliation"
+      }
+    },
+    {
+      "authority_source": "Decision 0017",
+      "contract_refs": [
+        "docs/decisions/0017-minimal-typed-identity-references.md"
+      ],
+      "expected": {
+        "outcome": "rejected",
+        "reason_code": "subject_candidate_or_environment_mismatch"
+      },
+      "given": {
+        "candidate_matches": false,
+        "environment_profile_matches": false,
+        "reported_acceptance": "passed"
+      },
+      "immutable_fields": [
+        "candidate_reference",
+        "environment_profile_reference"
+      ],
+      "scenario_id": "P0-ID-005",
+      "when": {
+        "event": "verification_result_admission"
+      }
+    },
+    {
+      "authority_source": "Decision 0017",
+      "contract_refs": [
+        "docs/decisions/0017-minimal-typed-identity-references.md"
+      ],
+      "expected": {
+        "candidate_reference_equal": true,
+        "outcome": "accepted",
+        "verification_subject_equal": false
+      },
+      "given": {
+        "acceptance_contract_changed": true,
+        "candidate_bytes_changed": false
+      },
+      "immutable_fields": [
+        "verification_contract_reference",
+        "verification_subject_derivation"
+      ],
+      "scenario_id": "P0-ID-006",
+      "when": {
+        "event": "subject_rebuild"
+      }
+    },
+    {
+      "authority_source": "Decision 0017",
+      "contract_refs": [
+        "docs/decisions/0017-minimal-typed-identity-references.md"
+      ],
+      "expected": {
+        "outcome": "rejected",
+        "reason_code": "protocol_conflict",
+        "timestamp_winner": false
+      },
+      "given": {
+        "invocation_id_equal": true,
+        "structured_results_equal": false
+      },
+      "immutable_fields": [
+        "invocation_uniqueness",
+        "result_integrity"
+      ],
+      "scenario_id": "P0-ID-007",
+      "when": {
+        "event": "duplicate_invocation_result"
+      }
+    },
+    {
+      "authority_source": "Decisions 0017 and 0019",
+      "contract_refs": [
+        "docs/decisions/0017-minimal-typed-identity-references.md",
+        "docs/decisions/0019-capability-based-system-map-consumer-port.md"
+      ],
+      "expected": {
+        "old_result_current": false,
+        "outcome": "stale",
+        "same_map_reference_grants_reuse": false
+      },
+      "given": {
+        "branch_or_candidate_changed": true,
+        "system_map_node_reference_equal": true
+      },
+      "immutable_fields": [
+        "repository_branch_commit_view",
+        "candidate_reference"
+      ],
+      "scenario_id": "P0-ID-008",
+      "when": {
+        "event": "result_currentness_check"
+      }
+    },
+    {
+      "authority_source": "Decision 0017",
+      "contract_refs": [
+        "docs/decisions/0017-minimal-typed-identity-references.md"
+      ],
+      "expected": {
+        "cross_work_package_absorption": 0,
+        "identity_collision": 0,
+        "outcome": "accepted"
+      },
+      "given": {
+        "parallel_invocations": 10000,
+        "suite_names_may_repeat": true
+      },
+      "immutable_fields": [
+        "work_package_reference",
+        "subject_reference",
+        "invocation_reference"
+      ],
+      "scenario_id": "P0-ID-009",
+      "when": {
+        "event": "parallel_identity_stress"
+      }
+    },
+    {
+      "authority_source": "Decision 0017",
+      "contract_refs": [
+        "docs/decisions/0017-minimal-typed-identity-references.md"
+      ],
+      "expected": {
+        "outcome": "accepted",
+        "permanent_identity_history_required": false,
+        "references_rebuilt": true
+      },
+      "given": {
+        "current_manifests_available": true,
+        "runtime_restarted": true
+      },
+      "immutable_fields": [
+        "current_specification",
+        "current_candidate",
+        "current_asset_and_environment_manifests"
+      ],
+      "scenario_id": "P0-ID-010",
+      "when": {
+        "event": "reference_reconstruction"
+      }
+    }
+  ]
+}

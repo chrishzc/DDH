@@ -1,0 +1,27 @@
+{
+  "cases": [
+    {
+      "case_id": "P0-ENV-001",
+      "expected": {
+        "outcome": "accepted",
+        "reason": "all required envelope and typed subject fields are present"
+      },
+      "input": "contract-envelope-valid-example.json"
+    },
+    {
+      "case_id": "P0-ENV-002",
+      "expected": {
+        "missing_fields": [
+          "subject.task_specification.version"
+        ],
+        "outcome": "rejected",
+        "reason": "authority version is required to reject stale or wrong-subject absorption"
+      },
+      "input": "contract-envelope-rejected-example.json"
+    }
+  ],
+  "contract_refs": [
+    "docs/decisions/0016-json-contract-envelope-v1.md",
+    "docs/decisions/0017-minimal-typed-identity-references.md"
+  ]
+}

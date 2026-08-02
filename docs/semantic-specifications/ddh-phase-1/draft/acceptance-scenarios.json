@@ -1,0 +1,175 @@
+{
+  "acceptance_catalog_id": "DDH-P1-ACCEPTANCE-001",
+  "specification": "DDH-P1-SPEC-001@1.0.0",
+  "required_outcome": "passed_complete_current",
+  "scenarios": [
+    {
+      "scenario_id": "P1-AUTH-001",
+      "class": "authority",
+      "given": "A workload package omits executable expected behavior.",
+      "when": "The Specification Compiler evaluates readiness.",
+      "expected": "Reject with specification_not_ready before any product or Verification Asset write."
+    },
+    {
+      "scenario_id": "P1-FLOW-001",
+      "class": "end_to_end",
+      "given": "A confirmed L1 path-normalization workload, current authority and sufficient budgets.",
+      "when": "The complete single-main-Agent vertical slice runs.",
+      "expected": "Publish one portable Candidate Bundle and work_package_completed without intermediate human checkpoints."
+    },
+    {
+      "scenario_id": "P1-MAP-001",
+      "class": "system_map",
+      "given": "A usable actual-only System Map view bound to the exact repository ref and commit.",
+      "when": "Initial scope, Context and verification closure are projected.",
+      "expected": "Downstream artifacts identify the consumed nodes and relations; the Map grants no authority."
+    },
+    {
+      "scenario_id": "P1-MAP-002",
+      "class": "system_map_recovery",
+      "given": "The relevant System Map area is unavailable or partial.",
+      "when": "An eligible L1 workload requires impact discovery.",
+      "expected": "Use bounded live-source fallback for only the affected area and continue without human input when impact becomes known."
+    },
+    {
+      "scenario_id": "P1-CONTEXT-001",
+      "class": "context",
+      "given": "A large repository and 10000 unrelated dirty-file manifest records.",
+      "when": "The Context Curator builds the initial envelope.",
+      "expected": "Include bounded summaries and exact required selectors without copying the unrelated corpus into Agent Context."
+    },
+    {
+      "scenario_id": "P1-CONTEXT-002",
+      "class": "context_stress",
+      "given": "Duplicate and irrelevant Context Requests arrive repeatedly.",
+      "when": "The Context Curator evaluates grants.",
+      "expected": "Deduplicate unchanged content, deny irrelevant requests and charge each accepted content unit once."
+    },
+    {
+      "scenario_id": "P1-AGENT-001",
+      "class": "agent_boundary",
+      "given": "An Agent Result claims PASS, completion and touched paths.",
+      "when": "The Host-pull Agent Driver accepts the result.",
+      "expected": "Treat every claim as untrusted input and route the proposed delta through independent admission and verification."
+    },
+    {
+      "scenario_id": "P1-GUARD-001",
+      "class": "dirty_worktree",
+      "given": "The user workspace contains an unrelated pre-existing dirty resource.",
+      "when": "A disposable Candidate is materialized and modified.",
+      "expected": "The original workspace remains untouched and the dirty resource is preserved byte-identically in the Candidate baseline."
+    },
+    {
+      "scenario_id": "P1-GUARD-002",
+      "class": "scope",
+      "given": "One proposed admission unit contains an allowed product change and a prohibited out-of-scope change.",
+      "when": "The Change Guard reconciles actual paths.",
+      "expected": "Reject the entire mixed admission unit, preserve its private delta for bounded rework and do not modify the user workspace."
+    },
+    {
+      "scenario_id": "P1-IMPACT-001",
+      "class": "impact",
+      "given": "The actual PathNormalizer delta affects the read-only ManifestLoader.",
+      "when": "Actual impact is reconciled.",
+      "expected": "Add ManifestLoader regressions to verification closure without adding ManifestLoader to write scope."
+    },
+    {
+      "scenario_id": "P1-IMPACT-002",
+      "class": "exception",
+      "given": "Passing required behavior truly requires changing ManifestLoader.",
+      "when": "The current write scope is reconciled with the required repair.",
+      "expected": "Stop the affected lane with scope_change_required and a structured revision proposal."
+    },
+    {
+      "scenario_id": "P1-TEST-001",
+      "class": "test_quality",
+      "given": "A proposed Verification Asset deletes an assertion, widens an expected value, lowers a threshold, shrinks a fixture, removes a case or adds skip or xfail.",
+      "when": "The Test Auditor evaluates the proposal.",
+      "expected": "Reject the asset version without changing the fixed acceptance catalog."
+    },
+    {
+      "scenario_id": "P1-TEST-002",
+      "class": "test_repair",
+      "given": "A Verification Asset implementation is defective while the expected behavior is unambiguous.",
+      "when": "A bounded repair is proposed.",
+      "expected": "Require independent re-admission and rerun the original scenario plus a known-bad probe before formal PASS."
+    },
+    {
+      "scenario_id": "P1-RUNNER-001",
+      "class": "timeout",
+      "given": "A normal required suite takes 60 seconds and has no reliable duration history.",
+      "when": "The Verification Runner applies the bootstrap timeout profile.",
+      "expected": "Do not terminate it at 30 seconds; use the 600-second unknown-duration hard deadline."
+    },
+    {
+      "scenario_id": "P1-RUNNER-002",
+      "class": "runner_recovery",
+      "given": "A command exceeds its applicable hard deadline and leaves a child process.",
+      "when": "Timeout recovery executes.",
+      "expected": "Terminate the process tree, drain bounded output within the grace period and publish a typed timeout result."
+    },
+    {
+      "scenario_id": "P1-RUNNER-003",
+      "class": "bounded_output",
+      "given": "A verification command emits repeated tracebacks and shard failures.",
+      "when": "The Verification Runner captures diagnostics.",
+      "expected": "Keep the typed verdict independent and bound retained diagnostics by the approved byte ceiling."
+    },
+    {
+      "scenario_id": "P1-CANDIDATE-001",
+      "class": "stale_result",
+      "given": "10000 duplicate, late or out-of-order Agent Result references target old Candidate generations.",
+      "when": "Admission and completion consume results.",
+      "expected": "Ignore stale generations deterministically without contaminating the current immutable Candidate."
+    },
+    {
+      "scenario_id": "P1-RECOVERY-001",
+      "class": "no_progress",
+      "given": "The same inputs, Candidate, strategy and failure fingerprint recur without new evidence.",
+      "when": "Recovery routing evaluates another attempt.",
+      "expected": "Do not retry or spend additional Agent budget; publish one machine-actionable no_progress outcome."
+    },
+    {
+      "scenario_id": "P1-RECOVERY-002",
+      "class": "safe_recovery",
+      "given": "A transient runner workspace failure occurs before product verification starts.",
+      "when": "An approved equivalent safe recovery route remains.",
+      "expected": "Recreate the disposable runner environment and retry the same immutable Subject without asking a human."
+    },
+    {
+      "scenario_id": "P1-PORTABILITY-001",
+      "class": "cross_platform",
+      "given": "Equivalent path fixtures run on required Windows and Ubuntu profiles.",
+      "when": "The reference adapters normalize separators, Unicode and logical repository paths.",
+      "expected": "Produce the same Contract verdict while enforcing platform-specific absolute, UNC and junction or symlink boundaries."
+    },
+    {
+      "scenario_id": "P1-FIXTURE-001",
+      "class": "reference_workload",
+      "given": "Relative, normalized, workspace-escape, absolute, UNC and junction or symlink path inputs.",
+      "when": "PathNormalizer is evaluated.",
+      "expected": "Return the specified canonical path or exact typed rejection for every input partition."
+    },
+    {
+      "scenario_id": "P1-ADAPTER-001",
+      "class": "verification_adapter",
+      "given": "One pytest asset and one non-pytest fixed-command asset.",
+      "when": "The Verification Runner compiles execution plans.",
+      "expected": "Use direct argv through typed adapters and never expose a generic shell executor."
+    },
+    {
+      "scenario_id": "P1-COMPLETION-001",
+      "class": "completion",
+      "given": "The current Specification, Candidate, admitted assets, impact closure and required results all match and pass.",
+      "when": "The Completion Judge evaluates the closure.",
+      "expected": "Publish only work_package_completed; higher-layer and external states remain not_evaluated."
+    },
+    {
+      "scenario_id": "P1-BUNDLE-001",
+      "class": "handoff",
+      "given": "Work Package completion succeeds.",
+      "when": "Candidate handoff is exported.",
+      "expected": "Create a portable short-lived Bundle containing the manifest, patch, required blobs, admitted assets and typed result without applying it to the user workspace."
+    }
+  ]
+}

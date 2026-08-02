@@ -1,0 +1,119 @@
+{
+  "contract_refs": [
+    "DDH-P0-SPEC-001@1.1.0",
+    "SPEC-WP-001",
+    "DDH-RISK-001",
+    "DDH-COMP-001"
+  ],
+  "failure_routes": [
+    {
+      "condition": "shared_contract_requires_serial_owner",
+      "scenario_id": "P0-COORD-006"
+    },
+    {
+      "condition": "late_writer",
+      "scenario_id": "P0-CAND-006"
+    },
+    {
+      "condition": "partial_quiescence",
+      "scenario_id": "P0-CAND-009"
+    },
+    {
+      "condition": "impact_underestimated",
+      "scenario_id": "P0-REC-003A"
+    },
+    {
+      "condition": "same_failure_no_new_evidence",
+      "scenario_id": "P0-REC-002"
+    }
+  ],
+  "flow_id": "P0-FLOW-L2-001",
+  "initial_authority": {
+    "external_write_allowed": false,
+    "risk_class": "L2",
+    "task_specification": "DDH-P0-SPEC-001@1.1.0",
+    "write_scope": [
+      "PortableWorkspace/PathNormalizer",
+      "PortableWorkspace/ManifestLoader",
+      "PortableWorkspace/ManifestIndex",
+      "PortableWorkspace/AcceptanceTests"
+    ]
+  },
+  "scope_layer": "Subsystem",
+  "steps": [
+    {
+      "expected_outcome": "confirmed_ready",
+      "order": 1,
+      "scenario_id": "P0-AUTH-001"
+    },
+    {
+      "expected_outcome": "baseline_plus_candidate_delta_plus_bounded_live_discovery",
+      "order": 2,
+      "scenario_id": "P0-SM-004"
+    },
+    {
+      "expected_outcome": "parallel_allowed",
+      "order": 3,
+      "scenario_id": "P0-COORD-001"
+    },
+    {
+      "expected_outcome": "boundary_active",
+      "order": 4,
+      "scenario_id": "P0-COORD-004"
+    },
+    {
+      "expected_outcome": "context_envelope_materialized",
+      "order": 5,
+      "scenario_id": "P0-CTX-001"
+    },
+    {
+      "expected_outcome": "isolated_candidate",
+      "order": 6,
+      "scenario_id": "P0-CAND-003"
+    },
+    {
+      "expected_outcome": "candidate_freeze_requested",
+      "order": 7,
+      "scenario_id": "P0-COORD-011"
+    },
+    {
+      "expected_outcome": "candidate_frozen_after_bounded_drain",
+      "order": 8,
+      "scenario_id": "P0-CAND-008"
+    },
+    {
+      "expected_outcome": "manifest_published",
+      "order": 9,
+      "scenario_id": "P0-TEST-S001"
+    },
+    {
+      "expected_outcome": "mechanical_verification_passed",
+      "order": 10,
+      "scenario_id": "P0-VERIFY-S001"
+    },
+    {
+      "expected_outcome": "children_ready_for_subsystem_evaluation",
+      "order": 11,
+      "scenario_id": "P0-COMP-S010"
+    },
+    {
+      "expected_outcome": "subsystem_integrated",
+      "order": 12,
+      "scenario_id": "P0-COMP-S009"
+    },
+    {
+      "expected_outcome": "routine_no_orchestration_signal",
+      "order": 13,
+      "scenario_id": "P0-LEARN-001"
+    }
+  ],
+  "terminal_assertions": {
+    "all_writers_quiescent_before_freeze": true,
+    "domain_accepted": false,
+    "external_authority_granted": false,
+    "module_passes_alone_form_subsystem_pass": false,
+    "routine_human_checkpoint_count": 0,
+    "subsystem_integrated": true
+  },
+  "title": "L2 three-Module product and acceptance-test parallel fork-join"
+}

@@ -1,0 +1,20 @@
+{
+  "correlation_id": "phase0-fixture-validation",
+  "message_id": "p0-validation-002",
+  "message_type": "fixture_validation_request",
+  "payload": {
+    "fixture_family": "phase0-package"
+  },
+  "protocol": "ddh-contract-envelope",
+  "protocol_version": "1.0.0",
+  "subject": {
+    "candidate": {
+      "content_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "id": "phase0-package"
+    },
+    "task_specification": {
+      "content_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "id": "DDH-P0-SPEC-001"
+    }
+  }
+}

@@ -1,0 +1,19 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.venv/
+dist/
+build/
+*.egg-info/
+.DS_Store
+Thumbs.db
+
+# Runtime projection; the canonical inclusion policy will be decided with the
+# System Map implementation specification.
+.system-map/indexes/
+.system-map/diagnostics/
+.system-map/staging/

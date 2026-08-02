@@ -1,0 +1,738 @@
+{
+  "fixture_family": "P0-CONTEXT-COORDINATION-CANDIDATE",
+  "contract_refs": [
+    "DDH-P0-SPEC-001@1.0.0",
+    "DEC-0007",
+    "DEC-0017",
+    "DEC-0018",
+    "DEC-0019",
+    "DEC-0021",
+    "OW-F01",
+    "OW-F02",
+    "OW-F03",
+    "OW-F05",
+    "OW-F06",
+    "OW-F07",
+    "OW-F08",
+    "OW-F10",
+    "OW-F11",
+    "OW-F12",
+    "OW-F13",
+    "OW-F14",
+    "OW-F15",
+    "OW-F16",
+    "PWC-CIM-001",
+    "PWC-CIM-002",
+    "PWC-INTEG-003",
+    "RC-PWC-CIM-001",
+    "RC-PWC-CIM-002",
+    "RC-DOM-003",
+    "SMQ-001"
+  ],
+  "scenarios": [
+    {
+      "scenario_id": "P0-CTX-001",
+      "contract_refs": ["OW-F16", "OW-S100", "DEC-0021"],
+      "given": {
+        "lane": "independent_acceptance_test_writer",
+        "acceptance_items": ["PAY-02", "PAY-03"],
+        "context_budget": "bounded",
+        "candidate": "C1"
+      },
+      "when": "materialize_initial_context_envelope",
+      "expected": {
+        "outcome": "context_envelope_materialized",
+        "included": ["goal", "PAY-02", "PAY-03", "prohibitions", "required_contracts", "bounded_symbol_index", "test_write_zone"],
+        "excluded": ["entire_billing_domain", "raw_logs", "unrelated_source"],
+        "candidate_binding": "C1",
+        "write_permission_granted": false
+      },
+      "authority_source": ["DDH-P0-SPEC-001@1.0.0", "OW-F16", "OW-S100", "DEC-0021"],
+      "immutable_fields": ["goal", "acceptance_items", "prohibitions", "write_scope", "context_budget"]
+    },
+    {
+      "scenario_id": "P0-CTX-002",
+      "contract_refs": ["OW-F16", "OW-S101"],
+      "given": {
+        "missing_content": "src/workspace/errors.py::PathResolutionFailure",
+        "purpose": "determine_observable_rollback_failure",
+        "already_checked": ["PathResolutionResult", "PathResolutionState"],
+        "candidate": "C1"
+      },
+      "when": "request_specific_content",
+      "expected": {
+        "outcome_any_of": ["grant_exact_content", "grant_excerpt"],
+        "candidate_binding": "C1",
+        "charged_once": true,
+        "loads_entire_tree": false,
+        "write_permission_granted": false
+      },
+      "authority_source": ["OW-F16", "OW-S101"],
+      "immutable_fields": ["purpose", "candidate", "context_budget", "write_scope"]
+    },
+    {
+      "scenario_id": "P0-CTX-003",
+      "contract_refs": ["OW-F16", "OW-S102", "SMQ-001"],
+      "given": {
+        "request": "entire_billing_domain",
+        "decision_question": null,
+        "checked_sources": []
+      },
+      "when": "evaluate_broad_context_request",
+      "expected": {
+        "outcome_any_of": ["grant_summary_or_index", "deny_irrelevant_or_duplicate"],
+        "requires_narrower_purpose": true,
+        "full_domain_loaded": false,
+        "scope_expanded": false
+      },
+      "authority_source": ["OW-F16", "OW-S102", "SMQ-001"],
+      "immutable_fields": ["task_specification", "write_scope", "acceptance", "context_budget"]
+    },
+    {
+      "scenario_id": "P0-CTX-004",
+      "contract_refs": ["OW-F16", "OW-S103", "DEC-0021"],
+      "given": {
+        "expansion_budget_remaining": 0,
+        "request": "multiple_adjacent_modules"
+      },
+      "when": "evaluate_context_expansion",
+      "expected": {
+        "outcome": "context_budget_exhausted",
+        "automatic_options": ["summarize", "narrow_subgoal", "repartition", "serialize"],
+        "silent_budget_overrun": false,
+        "human_checkpoint_required": false
+      },
+      "authority_source": ["OW-F16", "OW-S103", "DEC-0021"],
+      "immutable_fields": ["context_budget", "task_specification", "acceptance", "write_scope"]
+    },
+    {
+      "scenario_id": "P0-CTX-005",
+      "contract_refs": ["OW-F16", "OW-S104", "DEC-0017"],
+      "given": {
+        "loaded_context_candidate": "C1",
+        "current_candidate": "C2",
+        "changed_contract": "PathResolutionResult"
+      },
+      "when": "lane_uses_old_context",
+      "expected": {
+        "outcome": "context_stale",
+        "direct_patch_admission": false,
+        "next_action": "provide_bounded_C1_to_C2_increment",
+        "fresh_generation_required": true
+      },
+      "authority_source": ["OW-F16", "OW-S104", "DEC-0017"],
+      "immutable_fields": ["task_specification", "acceptance", "candidate_bindings", "invalidation_epoch"]
+    },
+    {
+      "scenario_id": "P0-CTX-006",
+      "contract_refs": ["OW-F16", "OW-S106"],
+      "given": {
+        "context_near_limit": true,
+        "pinned": ["goal", "task_specification", "acceptance", "prohibitions"],
+        "removable": ["duplicate_source", "historical_log", "low_relevance_summary"]
+      },
+      "when": "compact_context",
+      "expected": {
+        "outcome": "context_compacted",
+        "pinned_preserved": true,
+        "semantic_weakening": false,
+        "removal_order": ["duplicate_source", "historical_log", "low_relevance_summary"]
+      },
+      "authority_source": ["OW-F16", "OW-S106"],
+      "immutable_fields": ["goal", "task_specification", "acceptance", "prohibitions"]
+    },
+    {
+      "scenario_id": "P0-CTX-007",
+      "contract_refs": ["OW-F16", "OW-S108"],
+      "given": {
+        "filesystem_read_channel": "uncontrolled",
+        "broker_metering": "configured"
+      },
+      "when": "report_context_guarantee",
+      "expected": {
+        "outcome": "orchestration_only_context_budget",
+        "claims_mechanical_read_containment": false,
+        "hard_boundary_requires_controlled_environment": true
+      },
+      "authority_source": ["OW-F16", "OW-S108"],
+      "immutable_fields": ["execution_capabilities", "data_permission", "context_budget"]
+    },
+    {
+      "scenario_id": "P0-CTX-008",
+      "contract_refs": ["OW-F16", "OW-P31", "DDH-P0-SPEC-001@1.0.0"],
+      "given": {
+        "conceptual_request_references": 10000,
+        "mix": ["duplicate", "irrelevant", "stale", "valid"],
+        "permanent_generated_fixture_count": 0
+      },
+      "when": "mechanically_evaluate_request_storm",
+      "expected": {
+        "outcome": "bounded_deterministic_grants",
+        "duplicate_full_injection_count": 0,
+        "duplicate_charge_count": 0,
+        "unbounded_expansion": false,
+        "agent_tokens_for_routine_routing": 0
+      },
+      "authority_source": ["DDH-P0-SPEC-001@1.0.0", "OW-F16", "OW-P31"],
+      "immutable_fields": ["context_budget", "candidate_binding", "partition_binding", "grant_policy"]
+    },
+    {
+      "scenario_id": "P0-CTX-009",
+      "contract_refs": ["OW-F16", "OW-S105", "SMQ-001", "DEC-0019"],
+      "given": {
+        "system_map_location": "src/workspace/old_path_normalizer.py",
+        "live_source_location": "src/workspace/path_normalizer.py",
+        "map_status": "stale"
+      },
+      "when": "resolve_context_content",
+      "expected": {
+        "outcome": "live_source_granted_with_map_drift",
+        "uses_live_source": true,
+        "map_drift_reported": true,
+        "map_grants_scope": false
+      },
+      "authority_source": ["OW-F16", "OW-S105", "SMQ-001", "DEC-0019"],
+      "immutable_fields": ["task_specification", "write_scope", "system_map_authority_false"]
+    },
+    {
+      "scenario_id": "P0-COORD-001",
+      "contract_refs": ["OW-F01", "OW-F02", "DEC-0007"],
+      "given": {
+        "lanes": ["product_implementation", "independent_acceptance_assets"],
+        "semantics": "fixed",
+        "write_overlap": false,
+        "parallel_benefit_exceeds_cost": true
+      },
+      "when": "evaluate_parallel_work",
+      "expected": {
+        "outcome": "parallel_allowed",
+        "separate_context_envelopes": true,
+        "separate_mutation_boundaries": true,
+        "central_integration_required": true
+      },
+      "authority_source": ["DEC-0007", "OW-F01", "OW-F02"],
+      "immutable_fields": ["task_specification", "acceptance", "write_scope", "shared_resource_policy"]
+    },
+    {
+      "scenario_id": "P0-COORD-002",
+      "contract_refs": ["OW-F01", "OW-S82", "DEC-0007"],
+      "given": {
+        "work_separable": true,
+        "isolation_and_context_cost": 80,
+        "expected_parallel_benefit": 20
+      },
+      "when": "evaluate_parallel_benefit",
+      "expected": {
+        "outcome": "parallel_not_worthwhile",
+        "next_mode": "serial_reconciled",
+        "safety_invariants_lowered": false
+      },
+      "authority_source": ["DEC-0007", "OW-F01", "OW-S82"],
+      "immutable_fields": ["task_specification", "scope", "acceptance", "risk_policy"]
+    },
+    {
+      "scenario_id": "P0-COORD-003",
+      "contract_refs": ["OW-F01", "OW-F05", "OW-S80"],
+      "given": {
+        "lanes": ["implementation", "acceptance"],
+        "shared_resource": "public_api_contract",
+        "contract_semantics": "not_fixed",
+        "separate_worktrees_available": true
+      },
+      "when": "evaluate_parallel_safety",
+      "expected": {
+        "outcome_any_of": ["parallel_unsafe", "needs_human_decision"],
+        "filesystem_isolation_proves_semantic_independence": false,
+        "automatic_contract_change": false
+      },
+      "authority_source": ["OW-F01", "OW-F05", "OW-S80"],
+      "immutable_fields": ["public_contract", "task_specification", "scope", "human_decision_boundary"]
+    },
+    {
+      "scenario_id": "P0-COORD-004",
+      "contract_refs": ["OW-F02", "PWC-CIM-001", "DEC-0017"],
+      "given": {
+        "partition_state": "planned",
+        "activation_tuple": {
+          "work_package": "WP-17@generation-1",
+          "partition": "PART-PRODUCT@generation-3",
+          "trusted_writer": "execution-channel:writer-7",
+          "base_candidate": "C1@sha256:base",
+          "write_resource_digest": "sha256:resources",
+          "boundary_mode": "isolated_candidate"
+        }
+      },
+      "when": "change_guard_returns_exact_boundary_active",
+      "expected": {
+        "outcome": "boundary_active",
+        "partition_state": "active",
+        "write_tools_exposed_before_confirmation": false
+      },
+      "authority_source": ["DEC-0007", "DEC-0017", "PWC-CIM-001"],
+      "immutable_fields": ["activation_tuple", "partition_generation", "trusted_writer", "boundary_instance"]
+    },
+    {
+      "scenario_id": "P0-COORD-005",
+      "contract_refs": ["PWC-CIM-001", "RC-DOM-003"],
+      "given": {
+        "partition_state": "activating",
+        "requested_generation": 3,
+        "returned_generation": 2
+      },
+      "when": "evaluate_boundary_activation_result",
+      "expected": {
+        "outcome": "activation_failed",
+        "partition_state": "activation_failed",
+        "write_tools_exposed": false,
+        "automatic_route": ["isolated_candidate", "serial_reconciled", "recovery"]
+      },
+      "authority_source": ["PWC-CIM-001", "RC-DOM-003"],
+      "immutable_fields": ["requested_activation_tuple", "task_specification", "write_scope", "fallback_order"]
+    },
+    {
+      "scenario_id": "P0-COORD-006",
+      "contract_refs": ["OW-F05", "OW-S22"],
+      "given": {
+        "lanes": ["product", "test"],
+        "shared_resource": "tests/fixtures/workspace_tree.py",
+        "change_in_scope": true
+      },
+      "when": "schedule_shared_resource_change",
+      "expected": {
+        "outcome": "serialize_shared_change",
+        "simultaneous_writers": 1,
+        "dependent_lanes_refreshed": true,
+        "unrelated_lanes_blocked": false
+      },
+      "authority_source": ["OW-F05", "OW-S22"],
+      "immutable_fields": ["task_specification", "shared_resource", "scope", "acceptance"]
+    },
+    {
+      "scenario_id": "P0-COORD-007",
+      "contract_refs": ["OW-F06", "OW-S31"],
+      "given": {
+        "cross_zone_request": "pending",
+        "requester_partition": "PART-TEST@generation-1",
+        "target_resource": "src/workspace/path_normalizer.py"
+      },
+      "when": "requester_attempts_target_write",
+      "expected": {
+        "outcome": "blocked_outside_partition",
+        "request_grants_write": false,
+        "candidate_changed": false
+      },
+      "authority_source": ["OW-F06", "OW-S31"],
+      "immutable_fields": ["partition_write_resources", "target_resource", "request_status", "generation"]
+    },
+    {
+      "scenario_id": "P0-COORD-008",
+      "contract_refs": ["OW-F07", "OW-S33", "PWC-CIM-002"],
+      "given": {
+        "old_writer": "A",
+        "old_generation": 1,
+        "admitted_partial_delta": true,
+        "user_delta_distinguishable": true,
+        "mutation_closure": "known"
+      },
+      "when": "handoff_to_writer_B",
+      "expected": {
+        "outcome": "handoff_completed",
+        "old_generation_can_write": false,
+        "new_generation": 2,
+        "starts_from_latest_candidate": true,
+        "context": "bounded_increment_and_unfinished_summary"
+      },
+      "authority_source": ["OW-F07", "OW-S33", "PWC-CIM-002"],
+      "immutable_fields": ["task_specification", "accepted_delta", "user_baseline", "old_generation", "new_generation"]
+    },
+    {
+      "scenario_id": "P0-COORD-009",
+      "contract_refs": ["OW-F07", "OW-S34", "RC-PWC-CIM-001"],
+      "given": {
+        "writer": "A",
+        "heartbeat": "lost",
+        "last_operation": "formatter",
+        "operation_result": "unknown",
+        "mutation_closure": "unknown"
+      },
+      "when": "attempt_handoff",
+      "expected": {
+        "outcome": "handoff_recovery_required",
+        "replacement_writer_created": false,
+        "required_checks": ["process_state", "workspace_delta", "partial_write", "descendant_writers"]
+      },
+      "authority_source": ["OW-F07", "OW-S34", "RC-PWC-CIM-001"],
+      "immutable_fields": ["user_baseline", "old_generation", "trusted_writer", "write_scope"]
+    },
+    {
+      "scenario_id": "P0-COORD-010",
+      "contract_refs": ["OW-F01", "OW-F06", "OW-S30", "OW-S32"],
+      "given": {
+        "lane_A_requests_lane_B_resource": true,
+        "lane_B_requests_lane_A_resource": true,
+        "parallel_benefit_remaining": false
+      },
+      "when": "resolve_cross_zone_cycle",
+      "expected": {
+        "outcome_any_of": ["parallel_not_worthwhile", "parallel_unsafe"],
+        "accepted_deltas_preserved": true,
+        "next_execution": "deterministic_serial",
+        "permanent_wait": false
+      },
+      "authority_source": ["OW-F01", "OW-F06", "OW-S30", "OW-S32"],
+      "immutable_fields": ["task_specification", "scope", "accepted_deltas", "shared_resource_exclusivity"]
+    },
+    {
+      "scenario_id": "P0-COORD-011",
+      "contract_refs": ["PWC-INTEG-003", "DEC-0007"],
+      "given": {
+        "required_lanes": ["module_A", "module_B", "module_C"],
+        "completion_order": ["module_A", "module_C", "module_B"],
+        "all_generations_current": true,
+        "shared_contracts_pinned": true
+      },
+      "when": "evaluate_asynchronous_join",
+      "expected": {
+        "outcome": "candidate_freeze_requested",
+        "early_lanes_wait_without_agent_tokens": true,
+        "integration_order": ["module_A", "module_B", "module_C"],
+        "old_module_passes_form_subsystem_pass": false
+      },
+      "authority_source": ["DEC-0007", "PWC-INTEG-003"],
+      "immutable_fields": ["required_lanes", "join_condition", "integration_order", "shared_contracts", "acceptance"]
+    },
+    {
+      "scenario_id": "P0-COORD-012",
+      "contract_refs": ["OW-F05", "OW-S25", "PWC-INTEG-003"],
+      "given": {
+        "shared_contract_change": "PathResolutionResult:v1-to-v2",
+        "dependent_lanes": ["product", "test"],
+        "independent_lanes": ["reporting"]
+      },
+      "when": "route_shared_contract_invalidation",
+      "expected": {
+        "outcome": "dependent_lanes_refreshed",
+        "new_generation_for": ["product", "test"],
+        "unchanged_generation_for": ["reporting"],
+        "context_increment": "v1_to_v2_only"
+      },
+      "authority_source": ["OW-F05", "OW-S25", "PWC-INTEG-003"],
+      "immutable_fields": ["approved_contract_v2", "dependency_mapping", "acceptance", "write_scope"]
+    },
+    {
+      "scenario_id": "P0-COORD-013",
+      "contract_refs": ["OW-F13", "OW-S83", "DEC-0018"],
+      "given": {
+        "operation": "shared_database_write",
+        "local_filesystem_isolation": true,
+        "external_authorization": false
+      },
+      "when": "select_mutation_mode",
+      "expected": {
+        "outcome": "external_high_risk_flow_required",
+        "local_mode_grants_authority": false,
+        "external_write_executed": false
+      },
+      "authority_source": ["OW-F13", "OW-S83", "DEC-0018"],
+      "immutable_fields": ["external_side_effect_prohibited", "external_authority", "task_specification"]
+    },
+    {
+      "scenario_id": "P0-CAND-001",
+      "contract_refs": ["DEC-0018", "OW-F14"],
+      "given": {
+        "risk": "L1",
+        "writers": 1,
+        "scope": "clear_reversible",
+        "user_delta_distinguishable": true
+      },
+      "when": "perform_multiple_local_edits",
+      "expected": {
+        "outcome": "accepted_into_candidate",
+        "mode": "serial_reconciled",
+        "per_edit_human_approval": false,
+        "post_delta_reconciliation": "required"
+      },
+      "authority_source": ["DEC-0018", "OW-F14"],
+      "immutable_fields": ["task_specification", "scope", "prohibited_resources", "acceptance"]
+    },
+    {
+      "scenario_id": "P0-CAND-002",
+      "contract_refs": ["DEC-0018", "OW-F13", "OW-S78"],
+      "given": {
+        "writers": 2,
+        "write_overlap": false,
+        "workspace": "shared"
+      },
+      "when": "request_guarded_shared_mode",
+      "expected": {
+        "outcome": "guarded_shared_mode_evaluated",
+        "allowed_only_if": ["trusted_execution_identity", "write_interception", "filesystem_containment", "path_canonicalization", "post_delta_reconciliation", "writer_revoke"],
+        "prompt_or_hook_alone_sufficient": false
+      },
+      "authority_source": ["DEC-0018", "OW-F13", "OW-S78"],
+      "immutable_fields": ["required_platform_capabilities", "write_partitions", "scope", "generation"]
+    },
+    {
+      "scenario_id": "P0-CAND-003",
+      "contract_refs": ["DEC-0018", "OW-F14", "OW-S79", "OW-S86"],
+      "given": {
+        "tool": "unknown_output_formatter",
+        "parallel_benefit": true,
+        "shared_prewrite_containment": false,
+        "isolated_candidate_available": true
+      },
+      "when": "route_mutation",
+      "expected": {
+        "outcome": "isolated_candidate",
+        "private_candidate_only": true,
+        "central_patch_admission_required": true,
+        "human_checkpoint_required": false
+      },
+      "authority_source": ["DEC-0018", "OW-F14", "OW-S79", "OW-S86"],
+      "immutable_fields": ["task_specification", "write_scope", "mode_routing_order", "patch_admission_rules"]
+    },
+    {
+      "scenario_id": "P0-CAND-004",
+      "contract_refs": ["DEC-0018", "OW-F12", "OW-S13", "OW-S85"],
+      "given": {
+        "patch_paths": ["src/workspace/path_normalizer.py", "src/customer/profile.py"],
+        "allowed_paths": ["src/billing/**"],
+        "private_delta_available": true
+      },
+      "when": "admit_mixed_scope_patch",
+      "expected": {
+        "outcome": "rejected_scope_or_partition",
+        "partial_absorption": false,
+        "integration_candidate_changed": false,
+        "bounded_rework_from_private_delta": true
+      },
+      "authority_source": ["DEC-0018", "OW-F12", "OW-S13", "OW-S85"],
+      "immutable_fields": ["allowed_paths", "prohibited_resources", "partition_generation", "candidate"]
+    },
+    {
+      "scenario_id": "P0-CAND-005",
+      "contract_refs": ["OW-F11", "OW-F12", "OW-S63", "DEC-0017"],
+      "given": {
+        "patch_base": "C1",
+        "current_candidate": "C2",
+        "physical_overlap": false,
+        "dependency_closure_changed": true,
+        "content_safely_applicable": true
+      },
+      "when": "admit_old_base_patch",
+      "expected": {
+        "outcome": "accepted_revalidation_required",
+        "new_candidate_identity": true,
+        "old_pass_reused_as_final": false
+      },
+      "authority_source": ["OW-F11", "OW-F12", "OW-S63", "DEC-0017"],
+      "immutable_fields": ["task_specification", "patch_content", "current_candidate", "dependency_contracts", "revalidation_requirement"]
+    },
+    {
+      "scenario_id": "P0-CAND-006",
+      "contract_refs": ["OW-F07", "OW-F11", "OW-S38", "OW-S67", "RC-PWC-CIM-002"],
+      "given": {
+        "submitted_generation": 1,
+        "current_generation": 2,
+        "submission_time": "after_handoff_or_freeze"
+      },
+      "when": "admit_late_writer_result",
+      "expected": {
+        "outcome": "rejected_stale_result",
+        "candidate_changed": false,
+        "current_generation_interrupted": false,
+        "quarantine_private_delta_only": true
+      },
+      "authority_source": ["OW-F07", "OW-F11", "OW-S38", "OW-S67", "RC-PWC-CIM-002"],
+      "immutable_fields": ["submitted_generation", "current_generation", "candidate", "write_scope"]
+    },
+    {
+      "scenario_id": "P0-CAND-007",
+      "contract_refs": ["DEC-0018", "OW-F13", "OW-S44", "OW-S81"],
+      "given": {
+        "head": "H1",
+        "user_dirty_delta": "U1",
+        "user_delta_required_by_candidate": true
+      },
+      "when": "materialize_candidate_baseline",
+      "expected": {
+        "outcome": "dirty_baseline_preserved",
+        "baseline_inputs": ["H1", "U1"],
+        "agent_delta_separate": true,
+        "head_only_candidate_allowed": false,
+        "destructive_workspace_operation": false
+      },
+      "authority_source": ["DEC-0018", "OW-F13", "OW-S44", "OW-S81"],
+      "immutable_fields": ["user_dirty_delta", "baseline_identity", "scope", "prohibited_destructive_actions"]
+    },
+    {
+      "scenario_id": "P0-CAND-008",
+      "contract_refs": ["PWC-CIM-002", "DDH-EO-E2E-002A"],
+      "given": {
+        "agent_claim": "done",
+        "descendant_writer": "draining",
+        "pre_fence_operation": "admitted",
+        "drain_budget": "available"
+      },
+      "when": "freeze_integration_group",
+      "expected": {
+        "outcome": "candidate_frozen_after_bounded_drain",
+        "new_operations_blocked": true,
+        "agent_claim_proves_quiescence": false,
+        "actual_delta_reconciled": true
+      },
+      "authority_source": ["PWC-CIM-002", "DDH-EO-E2E-002A"],
+      "immutable_fields": ["freeze_identity_tuple", "fence_epoch", "registered_writers", "user_baseline"]
+    },
+    {
+      "scenario_id": "P0-CAND-009",
+      "contract_refs": ["PWC-CIM-002", "DDH-EO-E2E-002B"],
+      "given": {
+        "required_partitions": ["A", "B", "C"],
+        "quiescent": ["A", "C"],
+        "active_or_unknown": ["B"]
+      },
+      "when": "evaluate_freeze",
+      "expected": {
+        "outcome": "partial_quiescence",
+        "partition_deltas_may_be_sealed": ["A", "C"],
+        "final_candidate_created": false,
+        "sealed_generations_resume_writing": false
+      },
+      "authority_source": ["PWC-CIM-002", "DDH-EO-E2E-002B"],
+      "immutable_fields": ["required_partitions", "generations", "join_condition", "candidate_manifest_absent"]
+    },
+    {
+      "scenario_id": "P0-CAND-010",
+      "contract_refs": ["PWC-CIM-002", "DDH-EO-E2E-002C"],
+      "given": {
+        "tool_result": "unknown",
+        "cases": [
+          {"case": "closed", "mutation_closure": "proven", "complete_snapshot": true},
+          {"case": "unknown", "mutation_closure": "unknown", "complete_snapshot": false}
+        ]
+      },
+      "when": "classify_freeze_safety",
+      "expected": {
+        "closed_case_outcome": "continue_from_actual_snapshot_without_claiming_tool_success",
+        "unknown_case_outcome": "freeze_recovery_required",
+        "agent_claim_substitutes_for_closure": false
+      },
+      "authority_source": ["PWC-CIM-002", "DDH-EO-E2E-002C"],
+      "immutable_fields": ["mutation_closure_evidence", "actual_snapshot", "external_side_effect_boundary"]
+    },
+    {
+      "scenario_id": "P0-CAND-011",
+      "contract_refs": ["PWC-CIM-002", "DDH-EO-E2E-002D", "OW-S42"],
+      "given": {
+        "candidate_state": "candidate_frozen",
+        "late_mutation_landed": true,
+        "verification_subject_exists": true
+      },
+      "when": "post_freeze_reconciliation_detects_change",
+      "expected": {
+        "outcome": "candidate_invalidated",
+        "verification_subject_invalidated": true,
+        "old_pass_reusable": false,
+        "next_action": "safe_fresh_generation_recovery"
+      },
+      "authority_source": ["PWC-CIM-002", "DDH-EO-E2E-002D", "OW-S42"],
+      "immutable_fields": ["frozen_candidate_identity", "manifest_digest", "verification_subject_binding", "fence_epoch"]
+    },
+    {
+      "scenario_id": "P0-CAND-012",
+      "contract_refs": ["RC-PWC-CIM-002", "OW-F10", "OW-S89"],
+      "given": {
+        "stale_mutation_landed": true,
+        "boundary_failure": true,
+        "useful_delta_distinguishable": true,
+        "user_baseline_intact": true
+      },
+      "when": "recover_from_boundary_failure",
+      "expected": {
+        "outcome": "fresh_isolated_generation_created",
+        "boundary_circuit_broken": true,
+        "old_candidate_invalidated": true,
+        "useful_delta_preserved": true,
+        "human_checkpoint_required": false
+      },
+      "authority_source": ["RC-PWC-CIM-002", "OW-F10", "OW-S89"],
+      "immutable_fields": ["task_specification", "scope", "user_baseline", "accepted_delta", "fallback_order"]
+    },
+    {
+      "scenario_id": "P0-CAND-013",
+      "contract_refs": ["OW-F15", "OW-S46", "OW-S96"],
+      "given": {
+        "candidate_manifest": ["src/workspace/path_normalizer.py", "tests/test_path_normalizer.py"],
+        "actual_required_untracked_fixture": "tests/fixtures/path_resolution_response.json"
+      },
+      "when": "check_manifest_completeness",
+      "expected": {
+        "outcome": "candidate_manifest_incomplete",
+        "candidate_verification_intake_allowed": false,
+        "local_test_pass_completes_work": false,
+        "next_action": "rescan_actual_snapshot"
+      },
+      "authority_source": ["OW-F15", "OW-S46", "OW-S96"],
+      "immutable_fields": ["actual_snapshot", "manifest_completeness_rule", "verification_subject_requirements"]
+    },
+    {
+      "scenario_id": "P0-CAND-014",
+      "contract_refs": ["OW-F12", "OW-S75", "PWC-INTEG-003"],
+      "given": {
+        "patch_set": ["module_A_delta", "module_B_delta", "module_C_delta"],
+        "arrival_orders": [
+          ["module_A_delta", "module_C_delta", "module_B_delta"],
+          ["module_B_delta", "module_A_delta", "module_C_delta"]
+        ],
+        "fixed_integration_order": ["module_A_delta", "module_B_delta", "module_C_delta"]
+      },
+      "when": "integrate_equivalent_patch_set",
+      "expected": {
+        "outcome": "deterministic_candidate_or_rework",
+        "candidate_uses_fixed_order": true,
+        "arrival_order_selects_semantics": false,
+        "order_sensitive_difference_outcome": "integration_conflict_rework_required"
+      },
+      "authority_source": ["OW-F12", "OW-S75", "PWC-INTEG-003"],
+      "immutable_fields": ["patch_content", "fixed_integration_order", "task_specification", "acceptance"]
+    },
+    {
+      "scenario_id": "P0-CAND-015",
+      "contract_refs": ["DEC-0018", "OW-F14", "OW-S84"],
+      "given": {
+        "guarded_shared_available": false,
+        "isolated_candidate_available": false,
+        "serial_reconciled_safe": false
+      },
+      "when": "exhaust_safe_local_modes",
+      "expected": {
+        "outcome": "platform_blocked",
+        "result_count": 1,
+        "repeated_retry_loop": false,
+        "prompt_only_parallel_fallback": false
+      },
+      "authority_source": ["DEC-0018", "OW-F14", "OW-S84"],
+      "immutable_fields": ["fallback_order", "safety_invariants", "task_specification", "scope"]
+    },
+    {
+      "scenario_id": "P0-CAND-016",
+      "contract_refs": ["OW-F14", "OW-P02", "OW-P27", "DDH-P0-SPEC-001@1.0.0"],
+      "given": {
+        "writers": 8,
+        "operations_per_writer": 1000,
+        "operation_mix": ["permitted", "forbidden", "shared", "stale"],
+        "conceptual_reference_count": 8000
+      },
+      "when": "mechanically_evaluate_mutation_admission",
+      "expected": {
+        "outcome": "bounded_deterministic_admission",
+        "false_allow_count": 0,
+        "unrelated_valid_partitions_globally_serialized": false,
+        "permanent_generated_operation_artifacts": false
+      },
+      "authority_source": ["DDH-P0-SPEC-001@1.0.0", "OW-F14", "OW-P02", "OW-P27"],
+      "immutable_fields": ["partition_resources", "generations", "shared_resource_policy", "scope", "admission_order"]
+    }
+  ]
+}

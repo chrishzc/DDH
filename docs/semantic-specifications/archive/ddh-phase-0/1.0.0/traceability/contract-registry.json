@@ -1,0 +1,135 @@
+{
+  "contracts": [
+    {
+      "contract_id": "DDH-P0-SPEC-001@1.0.0",
+      "path": "docs/semantic-specifications/ddh-phase-0/task-specification-v1.md"
+    },
+    {
+      "contract_id": "SPEC-WP-001",
+      "path": "docs/proposals/task_specification_work_package_boundary.md"
+    },
+    {
+      "contract_id": "DDH-RISK-001",
+      "path": "docs/proposals/risk_gate_and_exception_escalation_contract.md"
+    },
+    {
+      "contract_id": "DDH-COMP-001",
+      "path": "docs/proposals/layered_completion_contract.md"
+    },
+    {
+      "contract_id": "DDH-INV-001",
+      "path": "docs/proposals/invalidation_and_reconciliation_domain_contract.md"
+    },
+    {
+      "contract_id": "OLE-PROFILE-001",
+      "path": "docs/proposals/evolution_profile_pending_ledger_policy.md"
+    },
+    {
+      "contract_id": "DDH-OPS-001",
+      "path": "docs/proposals/managed_assets_and_external_high_risk_operations_contract.md"
+    },
+    {
+      "contract_id": "PWC-CIM-001",
+      "path": "docs/proposals/candidate_integrity_and_mutation_subsystem_specification.md"
+    },
+    {
+      "contract_id": "PWC-CIM-002",
+      "path": "docs/proposals/candidate_integrity_and_mutation_subsystem_specification.md"
+    },
+    {
+      "contract_id": "PWC-INTEG-003",
+      "path": "docs/proposals/parallel_work_coordination_subsystem_specification.md"
+    },
+    {
+      "contract_id": "SMQ-001",
+      "path": "docs/proposals/ddh_execution_and_orchestration_domain_overview.md"
+    },
+    {
+      "contract_id": "TAQG-ASSET-001",
+      "path": "docs/proposals/test_asset_quality_governance_subsystem_specification.md"
+    },
+    {
+      "contract_id": "TAQG-MVE-001",
+      "path": "docs/proposals/test_asset_quality_governance_subsystem_specification.md"
+    },
+    {
+      "contract_id": "TAQG-PORT-001",
+      "path": "docs/proposals/test_asset_quality_governance_subsystem_specification.md"
+    },
+    {
+      "contract_id": "TAQG-QUAL-001",
+      "path": "docs/proposals/test_asset_quality_governance_subsystem_specification.md"
+    },
+    {
+      "contract_id": "TAQG-QUAL-003",
+      "path": "docs/proposals/test_asset_quality_governance_subsystem_specification.md"
+    },
+    {
+      "contract_id": "MVE-EXEC-001",
+      "path": "docs/proposals/mechanical_verification_execution_subsystem_specification.md"
+    },
+    {
+      "contract_id": "MVE-OBS-001",
+      "path": "docs/proposals/mechanical_verification_execution_subsystem_specification.md"
+    },
+    {
+      "contract_id": "MVE-PROTO-001",
+      "path": "docs/proposals/mechanical_verification_execution_subsystem_specification.md"
+    },
+    {
+      "contract_id": "MVE-RESULT-001",
+      "path": "docs/proposals/mechanical_verification_execution_subsystem_specification.md"
+    },
+    {
+      "contract_id": "MVE-VERDICT-001",
+      "path": "docs/proposals/mechanical_verification_execution_subsystem_specification.md"
+    },
+    {
+      "contract_id": "CIM-MVE-001",
+      "path": "docs/proposals/mechanical_verification_execution_subsystem_specification.md"
+    }
+  ],
+  "dynamic_reference_rules": [
+    {
+      "path": "docs/decisions",
+      "prefixes": [
+        "DEC-",
+        "Decision-"
+      ],
+      "resolution": "four-digit decision number"
+    },
+    {
+      "path": "docs/semantic-specifications/ddh-phase-0/contract-families",
+      "prefixes": [
+        "P0-"
+      ],
+      "resolution": "exact contract or scenario ID must occur in a contract-family Markdown asset"
+    },
+    {
+      "path": "docs/proposals/parallel_work_coordination_subsystem_specification.md",
+      "prefixes": [
+        "OW-",
+        "RC-PWC-",
+        "DDH-EO-E2E-"
+      ],
+      "resolution": "exact ID must occur in the referenced proposal family"
+    },
+    {
+      "path": "docs/proposals/context_broker_subsystem_specification.md",
+      "prefixes": [
+        "OW-"
+      ],
+      "resolution": "exact context-related ID must occur in the Context Broker proposal"
+    },
+    {
+      "path": "docs/proposals/mechanical_verification_execution_subsystem_specification.md",
+      "prefixes": [
+        "RC-MVE-",
+        "RC-DOM-"
+      ],
+      "resolution": "exact ID must occur in an accepted Phase 0 authority input"
+    }
+  ],
+  "registry_id": "DDH-P0-CONTRACT-REGISTRY",
+  "version": "1.0.0"
+}

@@ -1,0 +1,555 @@
+{
+  "fixture_family": "P0-AUTH-SCOPE-RISK",
+  "contract_refs": [
+    "DDH-P0-SPEC-001@1.1.0",
+    "SPEC-WP-001",
+    "DDH-RISK-001",
+    "Decision-0019",
+    "Decision-0025",
+    "Decision-0026"
+  ],
+  "scenarios": [
+    {
+      "scenario_id": "P0-AUTH-001",
+      "contract_refs": ["SPEC-WP-001", "Decision-0025"],
+      "given": {
+        "risk_class": "L1",
+        "task_specification": "exact version with goal, observable behavior, scope, prohibitions, acceptance and budget",
+        "confirmation": "Demand Owner confirms exact identity and digest"
+      },
+      "when": "readiness and admission are evaluated",
+      "expected": {
+        "readiness": "confirmed_ready",
+        "admission": "accepted",
+        "human_confirmations": 1,
+        "routine_execution_requires_confirmation": false
+      },
+      "authority_source": "Demand Owner confirmation of the exact Task Specification version",
+      "immutable_fields": ["goal", "observable_behavior", "write_scope", "prohibitions", "acceptance", "budget_ceiling"]
+    },
+    {
+      "scenario_id": "P0-AUTH-002",
+      "contract_refs": ["SPEC-WP-001"],
+      "given": {
+        "scope_level": "Module",
+        "task_specification": "names an input but omits the required business output for an error boundary"
+      },
+      "when": "the Main Agent asks the readiness checker to infer the missing outcome",
+      "expected": {
+        "readiness": "specification_not_ready",
+        "admission": "rejected",
+        "gap": "missing_business_expected_outcome",
+        "agent_inference_allowed": false
+      },
+      "authority_source": "A human-confirmed business outcome is required",
+      "immutable_fields": ["expected_behavior", "acceptance"]
+    },
+    {
+      "scenario_id": "P0-AUTH-003",
+      "contract_refs": ["SPEC-WP-001", "Decision-0025"],
+      "given": {
+        "draft_status": "ready_for_confirmation",
+        "claim_sources": ["Main Agent", "prompt", "discovery metadata", "System Map", "passing test"]
+      },
+      "when": "a non-human source claims the draft is authorized",
+      "expected": {
+        "readiness": "ready_for_confirmation",
+        "admission": "rejected",
+        "reason": "non_authoritative_confirmation_source"
+      },
+      "authority_source": "Applicable human authority only",
+      "immutable_fields": ["confirmation_source", "specification_identity", "specification_digest"]
+    },
+    {
+      "scenario_id": "P0-AUTH-004",
+      "contract_refs": ["SPEC-WP-001", "Decision-0025"],
+      "given": {
+        "risk_class": "L0",
+        "human_request": "explicit non-behavioral documentation edit",
+        "minimum_fields": ["goal", "prohibition", "lightweight_confirmation"]
+      },
+      "when": "the minimal specification and affected assets are classified",
+      "expected": {
+        "readiness": "confirmed_ready",
+        "projection_lifecycle_required": false,
+        "route": "direct_change_with_lightweight_verification"
+      },
+      "authority_source": "Explicit Demand Owner request",
+      "immutable_fields": ["goal", "prohibition", "non_behavioral_boundary"]
+    },
+    {
+      "scenario_id": "P0-AUTH-005",
+      "contract_refs": ["SPEC-WP-001"],
+      "given": {
+        "confirmed_specification": "version 3 digest A",
+        "admission_request": "version 2 digest B"
+      },
+      "when": "a projection is presented for admission",
+      "expected": {
+        "admission": "rejected",
+        "reason": "stale_or_wrong_specification_subject",
+        "automatic_repair": "regenerate from version 3 only"
+      },
+      "authority_source": "Latest applicable human-confirmed Task Specification",
+      "immutable_fields": ["specification_identity", "specification_digest"]
+    },
+    {
+      "scenario_id": "P0-AUTH-006",
+      "contract_refs": ["SPEC-WP-001", "Decision-0025"],
+      "given": {
+        "confirmed_specification": "unchanged",
+        "projection_change": "runner recovery plus Context expansion and parallel-to-serial fallback"
+      },
+      "when": "the old projection generation is invalidated",
+      "expected": {
+        "result": "new_projection_generation",
+        "human_confirmation_required": false,
+        "acceptance_changed": false,
+        "write_scope_expanded": false
+      },
+      "authority_source": "Existing confirmed Task Specification and fixed Profile Policy version",
+      "immutable_fields": ["goal", "behavior", "write_scope", "acceptance", "budget_ceiling"]
+    },
+    {
+      "scenario_id": "P0-AUTH-007",
+      "contract_refs": ["SPEC-WP-001"],
+      "given": {
+        "projection": "requests a second write node outside confirmed scope",
+        "system_map": "shows that the node is affected"
+      },
+      "when": "projection boundary validation runs",
+      "expected": {
+        "admission": "rejected",
+        "reason": "write_scope_expansion_requires_revision",
+        "verification_closure_may_expand": true,
+        "write_authority_expanded": false
+      },
+      "authority_source": "Demand Owner-confirmed write scope",
+      "immutable_fields": ["write_scope", "prohibitions"]
+    },
+    {
+      "scenario_id": "P0-AUTH-008",
+      "contract_refs": ["SPEC-WP-001", "Decision-0025"],
+      "given": {
+        "old_projection": "admission evaluation in progress for specification version 4",
+        "concurrent_event": "version 5 becomes human-confirmed before admission commits"
+      },
+      "when": "admission resolves canonical authority",
+      "expected": {
+        "old_projection": "invalidated",
+        "write_authorized_by_old_projection": false,
+        "recovery": "generate a projection from version 5"
+      },
+      "authority_source": "Canonical human-confirmed version at admission commit",
+      "immutable_fields": ["specification_identity", "specification_digest"]
+    },
+    {
+      "scenario_id": "P0-AUTH-009",
+      "contract_refs": ["SPEC-WP-001"],
+      "given": {
+        "projection_identity": "projection-17",
+        "deliveries": ["digest A", "digest A", "digest B"]
+      },
+      "when": "duplicate deliveries are reconciled",
+      "expected": {
+        "digest_A_duplicate": "idempotent",
+        "digest_B": "rejected_conflict",
+        "silent_merge": false
+      },
+      "authority_source": "Exact confirmed specification and canonical projection derivation",
+      "immutable_fields": ["projection_identity", "projection_digest", "authority_refs"]
+    },
+    {
+      "scenario_id": "P0-AUTH-010",
+      "contract_refs": ["SPEC-WP-001", "DDH-RISK-001"],
+      "given": {
+        "accepted_budget_ceiling": 100,
+        "consumed_budget": 100,
+        "remaining_route": "requires additional budget"
+      },
+      "when": "the Main Agent attempts another recovery generation",
+      "expected": {
+        "affected_lane": "blocked",
+        "candidate": "preserved",
+        "result": "structured_budget_exception",
+        "automatic_budget_increase": false
+      },
+      "authority_source": "Demand Owner-confirmed task budget",
+      "immutable_fields": ["budget_ceiling", "acceptance", "write_scope"]
+    },
+    {
+      "scenario_id": "P0-SM-001",
+      "contract_refs": ["Decision-0019", "SPEC-WP-001"],
+      "given": {
+        "query": "initial selected Subsystem scope",
+        "binding": "repository, requested ref, resolved commit and actual-only view",
+        "outcome": "usable_actual"
+      },
+      "when": "the Work Package Projection consumes the result",
+      "expected": {
+        "result": "scope_nodes_and_relations_recorded",
+        "consumption_record_required": true,
+        "write_authority_granted_by_map": false
+      },
+      "authority_source": "Task Specification for scope; System Map only for actual architecture facts",
+      "immutable_fields": ["confirmed_scope", "repository_identity", "resolved_commit", "actual_only_requirement"]
+    },
+    {
+      "scenario_id": "P0-SM-002",
+      "contract_refs": ["Decision-0019"],
+      "given": {
+        "old_query": "branch feature at resolved commit A",
+        "current_query_subject": "branch feature at resolved commit B"
+      },
+      "when": "old query consumption is attempted",
+      "expected": {
+        "old_result": "stale",
+        "facts_consumed": false,
+        "recovery": "query commit B"
+      },
+      "authority_source": "Exact repository/ref/resolved-commit/view binding",
+      "immutable_fields": ["repository_identity", "resolved_commit", "system_map_view"]
+    },
+    {
+      "scenario_id": "P0-SM-003",
+      "contract_refs": ["Decision-0019"],
+      "given": {
+        "current_worktree": "branch current",
+        "query_target": "branch other at resolved commit C"
+      },
+      "when": "the query-only view switch is evaluated",
+      "expected": {
+        "query_result": "isolated_read_only_view",
+        "checkout_performed": false,
+        "worktree_modified": false
+      },
+      "authority_source": "System Map consumer port query capability",
+      "immutable_fields": ["current_worktree_identity", "query_target_commit"]
+    },
+    {
+      "scenario_id": "P0-SM-004",
+      "contract_refs": ["Decision-0019"],
+      "given": {
+        "baseline_map": "usable actual view without the candidate dependency",
+        "candidate_delta": "adds a direct dependency in changed Module",
+        "map_maintenance": "not yet published"
+      },
+      "when": "candidate impact closure is calculated",
+      "expected": {
+        "route": "baseline_plus_candidate_delta_plus_bounded_live_discovery",
+        "new_dependency_in_actual_candidate_closure": true,
+        "map_maintenance_blocks_completion": false
+      },
+      "authority_source": "Actual candidate delta and bounded live-source facts; Task Specification remains authority",
+      "immutable_fields": ["candidate_identity", "confirmed_write_scope", "actual_only_requirement"]
+    },
+    {
+      "scenario_id": "P0-SM-005",
+      "contract_refs": ["Decision-0019"],
+      "given": {
+        "map_outcome": "partial",
+        "stale_area": "one changed Module",
+        "unaffected_domain": "current-enough"
+      },
+      "when": "impact discovery continues",
+      "expected": {
+        "fallback_scope": "one changed Module and its bounded direct closure",
+        "full_project_rescan": false,
+        "usable_unaffected_facts_retained": true
+      },
+      "authority_source": "System Map currentness result plus bounded live-source confirmation",
+      "immutable_fields": ["fallback_boundary", "confirmed_write_scope"]
+    },
+    {
+      "scenario_id": "P0-SM-006",
+      "contract_refs": ["Decision-0019", "DDH-RISK-001"],
+      "given": {
+        "risk_class": "L1",
+        "map_outcome": "unavailable",
+        "live_source": "bounded affected closure can be resolved",
+        "contracts": "unchanged"
+      },
+      "when": "the approved fallback route runs",
+      "expected": {
+        "execution": "may_continue",
+        "impact_closure": "resolved_from_bounded_live_source",
+        "human_confirmation_required": false
+      },
+      "authority_source": "Existing confirmed Task Specification; live source supplies current facts only",
+      "immutable_fields": ["write_scope", "behavior", "risk_policy"]
+    },
+    {
+      "scenario_id": "P0-SM-007",
+      "contract_refs": ["Decision-0019"],
+      "given": {
+        "map_outcome": "conflicted",
+        "bounded_live_fallback": "cannot resolve whether another node is affected"
+      },
+      "when": "impact closure and completion are evaluated",
+      "expected": {
+        "normalized_outcome": "impact_unknown",
+        "impact_complete_claim": "rejected",
+        "completion": "blocked_for_affected_claim"
+      },
+      "authority_source": "Mechanical impact-closure rule",
+      "immutable_fields": ["actual_only_requirement", "completion_impact_requirement"]
+    },
+    {
+      "scenario_id": "P0-SM-008",
+      "contract_refs": ["Decision-0019"],
+      "given": {
+        "actual_relation": "Module A depends on Module B",
+        "declared_only_relation": "planned Module A depends on Module C"
+      },
+      "when": "actual impact closure is calculated",
+      "expected": {
+        "included_nodes": ["Module A", "Module B"],
+        "excluded_nodes": ["Module C"],
+        "planned_fact_treated_as_actual": false
+      },
+      "authority_source": "Published actual facts and actual candidate delta only",
+      "immutable_fields": ["actual_only_requirement"]
+    },
+    {
+      "scenario_id": "P0-SM-009",
+      "contract_refs": ["Decision-0019"],
+      "given": {
+        "queries": [
+          "branch alpha at commit A and view X",
+          "branch beta at commit B and view Y"
+        ],
+        "delivery": "concurrent and out of order"
+      },
+      "when": "the results are stored and consumed",
+      "expected": {
+        "result_isolation": "by repository_ref_commit_view_tuple",
+        "cross_branch_fact_merge": false,
+        "ordering_dependency": false
+      },
+      "authority_source": "Exact query subject binding",
+      "immutable_fields": ["repository_identity", "requested_ref", "resolved_commit", "system_map_view"]
+    },
+    {
+      "scenario_id": "P0-SM-010",
+      "contract_refs": ["Decision-0019"],
+      "given": {
+        "query_status": "usable_actual",
+        "downstream_projection": "contains no consumed node or relation references"
+      },
+      "when": "Completion Judge evaluates an impact-complete claim",
+      "expected": {
+        "claim": "rejected",
+        "reason": "query_not_materially_consumed",
+        "query_invocation_alone_is_sufficient": false
+      },
+      "authority_source": "Decision 0019 required-consumption rule",
+      "immutable_fields": ["consumption_requirement", "completion_impact_requirement"]
+    },
+    {
+      "scenario_id": "P0-SM-011",
+      "contract_refs": ["Decision-0019", "DDH-RISK-001"],
+      "given": {
+        "confirmed_write_scope": ["Module A"],
+        "impact_closure": ["Module A", "Reporting Module"]
+      },
+      "when": "verification and repair scopes are derived",
+      "expected": {
+        "verification_scope": ["Module A", "Reporting Module"],
+        "write_scope": ["Module A"],
+        "reporting_repair": "requires_scope_revision"
+      },
+      "authority_source": "Demand Owner for write scope; actual impact facts for verification closure",
+      "immutable_fields": ["confirmed_write_scope", "prohibitions"]
+    },
+    {
+      "scenario_id": "P0-SM-012",
+      "contract_refs": ["Decision-0019", "DDH-P0-SPEC-001@1.1.0"],
+      "given": {
+        "scope": "large Domain",
+        "logical_reference_count": 10000,
+        "persistent_synthetic_fixture_count": 0
+      },
+      "when": "bounded reference validation and Context materialization are designed",
+      "expected": {
+        "validation": "deterministic_streaming",
+        "agent_context": "bounded Q0/Q1 summary and required relations only",
+        "permanent_10000_item_artifact": false,
+        "agent_required_for_validation": false
+      },
+      "authority_source": "Phase 0 verification and context budgets",
+      "immutable_fields": ["bounded_context_requirement", "zero_agent_validation_requirement"]
+    },
+    {
+      "scenario_id": "P0-RISK-001",
+      "contract_refs": ["DDH-RISK-001"],
+      "given": {
+        "classification": "L0",
+        "planned_change": "documentation formatting",
+        "actual_touch": "runtime behavior file"
+      },
+      "when": "actual touched resources are reconciled",
+      "expected": {
+        "L0_mutation": "stopped",
+        "route": "reclassify_before_mutation",
+        "silent_L0_continuation": false
+      },
+      "authority_source": "Fixed mechanical classifier consuming confirmed scope and actual touched resources",
+      "immutable_fields": ["risk_class_semantics", "confirmed_scope"]
+    },
+    {
+      "scenario_id": "P0-RISK-002",
+      "contract_refs": ["DDH-RISK-001"],
+      "given": {
+        "classification": "L1",
+        "actual_impact": "three authorized Modules need coordination",
+        "contracts": "unchanged",
+        "write_scope": "contains all three Modules"
+      },
+      "when": "dynamic reclassification runs",
+      "expected": {
+        "classification": "L2",
+        "route": "automatic_harness_strengthening",
+        "human_confirmation_required": false
+      },
+      "authority_source": "Existing confirmed scope plus canonical actual-impact facts",
+      "immutable_fields": ["write_scope", "contracts", "acceptance", "risk_class_semantics"]
+    },
+    {
+      "scenario_id": "P0-RISK-003",
+      "contract_refs": ["DDH-RISK-001"],
+      "given": {
+        "classification": "L1",
+        "change": "one-line financial rounding inside an existing Module contract",
+        "business_criticality": "high"
+      },
+      "when": "verification intensity is selected",
+      "expected": {
+        "authority_class": "L1",
+        "verification": "high_assurance_domain_appropriate",
+        "additional_write_authority": false
+      },
+      "authority_source": "Confirmed Task Specification scenarios and fixed Verification Profile policy",
+      "immutable_fields": ["authority_class_semantics", "acceptance_thresholds", "write_scope"]
+    },
+    {
+      "scenario_id": "P0-RISK-004",
+      "contract_refs": ["DDH-RISK-001", "SPEC-WP-001"],
+      "given": {
+        "classification": "L1",
+        "discovery": "required database field and public contract do not exist",
+        "unaffected_lane": "test documentation remains safe"
+      },
+      "when": "the implementation lane requests schema and contract changes",
+      "expected": {
+        "affected_lane": "stopped_as_L3",
+        "candidate": "preserved",
+        "exception": "structured",
+        "unaffected_lane": "may_continue"
+      },
+      "authority_source": "Architecture Owner and new human-confirmed Task Specification are required",
+      "immutable_fields": ["schema", "public_contract", "write_scope", "acceptance"]
+    },
+    {
+      "scenario_id": "P0-RISK-005",
+      "contract_refs": ["DDH-RISK-001", "Decision-0025"],
+      "given": {
+        "permission": "unknown",
+        "requested_operation": "write an unlisted configuration resource"
+      },
+      "when": "the Main Agent asks the classifier to assume access",
+      "expected": {
+        "operation": "blocked",
+        "classification": "L3_human_decision_required",
+        "assumed_permission": false
+      },
+      "authority_source": "Applicable human authority must explicitly grant scope/permission",
+      "immutable_fields": ["write_scope", "permission", "risk_policy"]
+    },
+    {
+      "scenario_id": "P0-RISK-006",
+      "contract_refs": ["DDH-RISK-001"],
+      "given": {
+        "current_class": "L2",
+        "downgrade_request_source": "Main Agent or orchestration memory",
+        "reason": "reduce token and isolation cost"
+      },
+      "when": "the downgrade request is evaluated",
+      "expected": {
+        "classification": "L2",
+        "downgrade": "rejected",
+        "acceptance_weakened": false
+      },
+      "authority_source": "Canonical fixed classifier inputs only",
+      "immutable_fields": ["risk_class_semantics", "acceptance", "verification_floor"]
+    },
+    {
+      "scenario_id": "P0-RISK-007",
+      "contract_refs": ["DDH-RISK-001", "Decision-0019"],
+      "given": {
+        "predicted_scope": ["Module A"],
+        "actual_delta_and_impact": ["Module A", "Module B"],
+        "Module_B_write_authority": false
+      },
+      "when": "actual delta reconciliation runs",
+      "expected": {
+        "verification_closure": ["Module A", "Module B"],
+        "Module_B_write": "blocked",
+        "route_if_repair_needed": "structured_scope_exception"
+      },
+      "authority_source": "Demand Owner-confirmed write scope; actual facts only expand verification closure",
+      "immutable_fields": ["write_scope", "prohibitions"]
+    },
+    {
+      "scenario_id": "P0-RISK-008",
+      "contract_refs": ["DDH-RISK-001"],
+      "given": {
+        "concurrent_exceptions": [
+          "lane A requests schema authority",
+          "lane B requests budget increase"
+        ]
+      },
+      "when": "exception routing executes out of order",
+      "expected": {
+        "reports": "separate_by_lane_authority_subject_and_request",
+        "approval_cross_application": false,
+        "unaffected_work": "continues_when_safe"
+      },
+      "authority_source": "Architecture Owner for schema; Demand Owner for task budget",
+      "immutable_fields": ["exception_subject", "requested_authority", "lane_identity"]
+    },
+    {
+      "scenario_id": "P0-RISK-009",
+      "contract_refs": ["DDH-RISK-001", "Decision-0025"],
+      "given": {
+        "task_specification": "prohibits external side effects",
+        "request": "network write after all local verification passes"
+      },
+      "when": "the external boundary is checked",
+      "expected": {
+        "network_write": "blocked",
+        "local_completion_grants_external_authority": false,
+        "route": "dedicated_external_high_risk_flow"
+      },
+      "authority_source": "External Authority Owner for an exact external operation plan",
+      "immutable_fields": ["external_side_effect_boundary", "target", "operation_plan"]
+    },
+    {
+      "scenario_id": "P0-RISK-010",
+      "contract_refs": ["DDH-RISK-001", "SPEC-WP-001"],
+      "given": {
+        "automatic_routes": "exhausted within accepted scope and budget",
+        "candidate": "contains bounded local changes",
+        "diff": "preserved"
+      },
+      "when": "the affected lane cannot make safe progress",
+      "expected": {
+        "lane": "stopped",
+        "result": "structured_exception",
+        "candidate_and_diff": "preserved",
+        "new_policy_invented": false
+      },
+      "authority_source": "Existing Task Specification defines the exhausted boundary; human decides any expansion",
+      "immutable_fields": ["goal", "scope", "acceptance", "budget_ceiling", "risk_policy"]
+    }
+  ]
+}

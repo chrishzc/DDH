@@ -1,0 +1,107 @@
+{
+  "$id": "https://ddh.local/schemas/phase0/contract-envelope-example.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$defs": {
+    "contentReference": {
+      "additionalProperties": false,
+      "properties": {
+        "content_digest": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "id": {
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "content_digest"
+      ],
+      "type": "object"
+    },
+    "versionedAuthorityReference": {
+      "additionalProperties": false,
+      "properties": {
+        "content_digest": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "id": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "version": {
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "version",
+        "content_digest"
+      ],
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "correlation_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "message_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "message_type": {
+      "const": "fixture_validation_request"
+    },
+    "payload": {
+      "additionalProperties": false,
+      "properties": {
+        "fixture_family": {
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "fixture_family"
+      ],
+      "type": "object"
+    },
+    "protocol": {
+      "const": "ddh-contract-envelope"
+    },
+    "protocol_version": {
+      "const": "1.0.0"
+    },
+    "subject": {
+      "additionalProperties": false,
+      "properties": {
+        "candidate": {
+          "$ref": "#/$defs/contentReference"
+        },
+        "task_specification": {
+          "$ref": "#/$defs/versionedAuthorityReference"
+        }
+      },
+      "required": [
+        "task_specification",
+        "candidate"
+      ],
+      "type": "object"
+    }
+  },
+  "required": [
+    "protocol",
+    "protocol_version",
+    "message_type",
+    "message_id",
+    "correlation_id",
+    "subject",
+    "payload"
+  ],
+  "title": "DDH Contract Envelope v1 Phase 0 Example",
+  "type": "object"
+}

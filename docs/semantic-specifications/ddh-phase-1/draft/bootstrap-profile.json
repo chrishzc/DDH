@@ -1,0 +1,83 @@
+{
+  "profile_id": "DDH-P1-BOOTSTRAP-001",
+  "version": "1.0.0",
+  "specification": "DDH-P1-SPEC-001@1.0.0",
+  "budget_source_priority": [
+    "task_specification_explicit",
+    "approved_project_profile",
+    "calibrated_bootstrap"
+  ],
+  "budgets": {
+    "agent_model_usage": {
+      "ceiling_source": "host_or_task_required",
+      "minimum_unallocated_reserve_ratio": 0.15,
+      "unobservable_usage_label": "estimated",
+      "identical_no_progress_retry_limit": 0
+    },
+    "context_ingestion": {
+      "initial_envelope_max_ratio": 0.15,
+      "cumulative_full_source_default_max_ratio": 0.30,
+      "single_expansion_max_ratio": 0.05,
+      "reasoning_tool_output_reserve_min_ratio": 0.50,
+      "over_profile_route": [
+        "summarize",
+        "repartition",
+        "serialize"
+      ]
+    },
+    "work_package_wall_time": {
+      "ceiling_source": "task_or_host_required",
+      "budget_exhaustion_outcome": "budget_exhausted"
+    },
+    "verification_execution": {
+      "adaptive_timeout_safety_factor": 2.0,
+      "startup_margin_seconds": 30,
+      "unknown_duration_hard_deadline_seconds": 600,
+      "termination_and_output_drain_grace_seconds": 30,
+      "no_progress_minimum_seconds": 120,
+      "no_progress_requires_trusted_activity_signal": true,
+      "silent_output_is_not_hang": true,
+      "retained_stdout_bytes": 65536,
+      "retained_stderr_bytes": 65536
+    },
+    "recovery_attempts": {
+      "identical_attempt_limit": 0,
+      "transient_infrastructure_recovery_action_limit": 2,
+      "equivalent_backend_attempt_limit": 1,
+      "new_evidence_does_not_reset_consumed_budget": true
+    },
+    "stress_execution": {
+      "required_reference_count": 10000,
+      "permanent_corpus_required": false,
+      "not_applicable_budget": 0,
+      "hard_deadline_seconds": 600
+    }
+  },
+  "required_platforms": [
+    {
+      "os": "windows-11",
+      "architecture": "x86_64",
+      "python": "3.13",
+      "filesystem": "local-ntfs"
+    },
+    {
+      "os": "ubuntu-24.04",
+      "architecture": "x86_64",
+      "python": "3.13",
+      "filesystem": "local-ext4-or-ci-equivalent"
+    }
+  ],
+  "latest_stable_python": {
+    "required_for_release": true,
+    "version_resolved_by_ci": true
+  },
+  "external_operation_budget": 0,
+  "forbidden_budget_tradeoffs": [
+    "change_expected_behavior",
+    "remove_required_scenario",
+    "weaken_oracle",
+    "lower_required_threshold",
+    "expand_write_scope",
+    "grant_external_authority"
+  ]
+}

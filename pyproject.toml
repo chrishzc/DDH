@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ddh"
+version = "0.1.0"
+description = "Demand-Driven Harness reference runtime"
+requires-python = ">=3.13"
+dependencies = []
+
+[project.scripts]
+ddh = "ddh.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

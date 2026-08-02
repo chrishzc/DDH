@@ -1,0 +1,28 @@
+{
+  "acceptance_scenarios": [
+    "PATH-001",
+    "PATH-002"
+  ],
+  "budgets": {
+    "agent_attempts": 3,
+    "effective_context_tokens": 10000
+  },
+  "expected_behavior": [
+    "Normalize separators and parent segments.",
+    "Reject workspace escape, absolute and UNC inputs."
+  ],
+  "goal": "Repair cross-platform repository path normalization.",
+  "prohibitions": [
+    "modify_manifest_loader",
+    "external_side_effects"
+  ],
+  "risk_class": "L1",
+  "selected_nodes": [
+    "PortableWorkspace/PathNormalizer"
+  ],
+  "specification_id": "PORTABLE-WORKSPACE-WP",
+  "version": "1.0.0",
+  "write_scope": [
+    "src/path_normalizer.py"
+  ]
+}

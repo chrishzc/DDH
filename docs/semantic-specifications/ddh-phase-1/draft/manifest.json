@@ -1,0 +1,60 @@
+{
+  "manifest_schema_version": "1.0.0",
+  "specification_id": "DDH-P1-SPEC-001",
+  "version": "1.0.0",
+  "status": "ready_for_confirmation",
+  "implementation_authority": "none_until_exact_human_confirmation",
+  "risk_class": "L1",
+  "architecture_scope": "DDH runtime first single-main-Agent vertical slice",
+  "authority_root": true,
+  "goal_source": "goal.md",
+  "acceptance_source": "acceptance-scenarios.json",
+  "bootstrap_profile": "bootstrap-profile.json",
+  "implementation_boundary": "implementation-boundary.md",
+  "reference_workload": "reference-workspace-fixture.md",
+  "assets": [
+    {
+      "path": "goal.md",
+      "sha256": "99088ad6883d293b713fab35ad407b7ce29fa95b6ccb6fa6a68c8605b119e910"
+    },
+    {
+      "path": "runtime-requirements.md",
+      "sha256": "2e61723a99734d47ebcfefbab431d8c1e21dea469fa03e41cb02059ba02d1766"
+    },
+    {
+      "path": "implementation-boundary.md",
+      "sha256": "a6c29bb930495653fc8dbaadd6aef620722fd2adf33e1984cb25710aff13d16d"
+    },
+    {
+      "path": "reference-workspace-fixture.md",
+      "sha256": "ac842e8c26ae135edcb83e7981058d31c089e0823c256f0110c3e12fcb453388"
+    },
+    {
+      "path": "acceptance-scenarios.json",
+      "sha256": "fca5699862e1b6f35870e058f4c243710d41cde589fa33d121d1a6ff18381bad"
+    },
+    {
+      "path": "bootstrap-profile.json",
+      "sha256": "4ecdfe74d85210ceea0abde034b65c581752764f2f4ef51ab2e5819d1e54eda7"
+    },
+    {
+      "path": "validation/validate_phase1_spec.py",
+      "sha256": "b88bdf1ebc233a390f2859614cbbf24a3da97db13205754c9d039229032c288f"
+    }
+  ],
+  "closure_digest_algorithm": "sha256",
+  "closure_digest_input": "UTF-8 lines sorted by path, each formatted as path:sha256",
+  "closure_digest": "0c5c1198356c29153507a491df3707622ad366b45cc407c2d9d4d9fd2cb0ff28",
+  "confirmation": {
+    "required": true,
+    "required_phrase_target": "DDH-P1-SPEC-001@1.0.0 plus closure_digest",
+    "confirmed": false
+  },
+  "external_side_effects": "prohibited",
+  "higher_layer_completion": [
+    "subsystem_integrated",
+    "domain_accepted",
+    "release_candidate"
+  ],
+  "higher_layer_completion_outcome": "not_evaluated"
+}

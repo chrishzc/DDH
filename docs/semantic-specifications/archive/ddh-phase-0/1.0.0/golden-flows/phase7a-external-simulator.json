@@ -1,0 +1,81 @@
+{
+  "contract_refs": [
+    "docs/decisions/0011-phase-7-external-high-risk-operations.md",
+    "docs/decisions/0024-staged-external-high-risk-adapter-productization.md"
+  ],
+  "flow_id": "P0-FLOW-EXT-001",
+  "failure_routes": [
+    {
+      "condition": "real_adapter_missing",
+      "scenario_id": "P0-EXT-001"
+    },
+    {
+      "condition": "approval_or_target_drift",
+      "scenario_id": "P0-EXT-002"
+    },
+    {
+      "condition": "request_timeout",
+      "scenario_id": "P0-EXT-003"
+    },
+    {
+      "condition": "generic_shell_or_url_escape",
+      "scenario_id": "P0-EXT-004"
+    },
+    {
+      "condition": "rollback_failure",
+      "scenario_id": "P0-EXT-005"
+    },
+    {
+      "condition": "provider_rejects_before_effect",
+      "scenario_id": "P0-EXT-008"
+    },
+    {
+      "condition": "late_response",
+      "scenario_id": "P0-EXT-009"
+    },
+    {
+      "condition": "partial_effect",
+      "scenario_id": "P0-EXT-010"
+    },
+    {
+      "condition": "duplicate_request",
+      "scenario_id": "P0-EXT-011"
+    },
+    {
+      "condition": "reconciliation_proves_success",
+      "scenario_id": "P0-EXT-012A"
+    },
+    {
+      "condition": "reconciliation_proves_not_executed",
+      "scenario_id": "P0-EXT-012B"
+    },
+    {
+      "condition": "reconciliation_unavailable",
+      "scenario_id": "P0-EXT-013"
+    }
+  ],
+  "initial_authority": {
+    "external_write_allowed": false,
+    "task_specification": "DDH-P0-SPEC-001@1.0.0"
+  },
+  "scope_layer": "Global",
+  "steps": [
+    {
+      "expected_outcome": "accepted",
+      "order": 1,
+      "scenario_id": "P0-EXT-006"
+    },
+    {
+      "expected_outcome": "succeeded",
+      "order": 2,
+      "scenario_id": "P0-EXT-007"
+    }
+  ],
+  "terminal_assertions": {
+    "external_write_performed": false,
+    "generic_executor_available": false,
+    "phase7a_pass_grants_external_authority": false,
+    "real_provider_required": false
+  },
+  "title": "Phase 7A deterministic external-operation simulator"
+}
