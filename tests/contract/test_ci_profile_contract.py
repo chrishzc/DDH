@@ -20,7 +20,7 @@ class CiProfileContractTests(unittest.TestCase):
             'python-version: "3.13"',
             "latest-stable-compatibility",
             'python-version: "3.x"',
-            "PYTHONPATH: src",
+            "PYTHONPATH: ${{ github.workspace }}/src",
             "persist-credentials: false",
             "permissions:",
             "contents: read",
