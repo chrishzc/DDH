@@ -1,0 +1,13 @@
+{
+  "profile_id":"DDH-P6-EVOLUTION-001",
+  "version":"1.0.0",
+  "ledger_hard_cap_bytes":65536,
+  "successful_fold_delete_max_hours":24,
+  "trigger_profile":{"P0":{"occurrences":1},"P1":{"occurrences":2,"max_wait_minutes":60},"P2":{"occurrences":3,"minimum_work_packages":2},"P3":{"occurrences":5}},
+  "ledger_outage_ttl_hours":{"P0":336,"P1":168,"P2":72,"P3":24},
+  "candidate_ttl_days":{"P0":90,"P1":30,"P2":14,"P3":7},
+  "routine_agent_token_budget":0,
+  "active_work_package_budget_borrowing":false,
+  "child_agent_memory_access":false,
+  "external_operation_budget":0
+}

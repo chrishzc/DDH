@@ -1,0 +1,19 @@
+{
+  "manifest_schema_version":"1.0.0","specification_id":"DDH-P6-SPEC-001","version":"1.0.0",
+  "status":"ready_for_confirmation","implementation_authority":"none_until_exact_human_confirmation",
+  "authority_root":true,"architecture_scope":"DDH bounded learning intake and controlled orchestration evolution",
+  "phase5_baseline":"phase5-source-snapshot.json","external_side_effect_budget":0,"assets":[
+    {"path":"goal.md","sha256":"5752458edc0a13eb27b6f74b4ddde18a3e8b7d59dc8305fcd88066fda2abe2b4"},
+    {"path":"runtime-requirements.md","sha256":"c47eb3e6ee6064f5632e9585a27637ba6627d3647a6764715f7690914ba0b848"},
+    {"path":"learning-contract.md","sha256":"bdae8cc4eb68717f467b2a8cc253bd13d4ba282dc414ce65e16e157a17a3678b"},
+    {"path":"implementation-boundary.md","sha256":"d5ae94fe8e89de542a5f65a2ee0ea9bb9c609474bb5e75fb0ace4a748862397b"},
+    {"path":"bootstrap-profile.json","sha256":"a0ac6f613571e4b237d243c06bde86c8eaf3371ba40fd19f935cf3655bb77724"},
+    {"path":"acceptance-scenarios.json","sha256":"58b3beb00b3eadaba58936d0474dd0dcdf22ce08966a338e400fa345797ea0c4"},
+    {"path":"phase5-source-snapshot.json","sha256":"f236b4cb205d62fed2e24e42627231cc67ba279f2bcac934626f38c14d434e40"},
+    {"path":"validation/validate_phase6_spec.py","sha256":"0bade0e426082f4122113d4045999456ca7a27a8aaa3fab1c8988475197c43a5"}
+  ],
+  "closure_digest_algorithm":"sha256","closure_digest_input":"UTF-8 lines sorted by path, each formatted as path:sha256",
+  "closure_digest":"1a0d3228bbf25aa60e6550da4f1b0a3af143b255fed2751e8bf602c65ff79a98",
+  "confirmation":{"required":true,"required_phrase_target":"DDH-P6-SPEC-001@1.0.0 plus closure_digest","confirmed":false},
+  "completion_claim":"phase6_specification_package_only"
+}

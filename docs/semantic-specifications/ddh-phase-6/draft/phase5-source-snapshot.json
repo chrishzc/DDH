@@ -1,0 +1,12 @@
+{
+  "snapshot_kind":"committed_phase5_baseline",
+  "commit_identity":"37d0a3fc145641842f1b1f6d07648e55dae8c902",
+  "phase5_specification":"DDH-P5-SPEC-001@1.0.0",
+  "phase5_closure_digest":"bb56305eb6df1758764a08c909ceb487b2867c1624f4447d8287414f0325c36d",
+  "files":[
+    {"path":"src/ddh/operational.py","sha256":"064b3618dff9aa52e9c66ed878c00b234d7b2cb31988ec1792e11708d2be07ea"},
+    {"path":"tests/unit/test_phase5_operational.py","sha256":"37d10c424cf73ccc193e0dd1da6e9da1e335a95ff8617b7af216f677ca8d857b"},
+    {"path":"tests/contract/test_phase5_acceptance_coverage.py","sha256":"596ff1137f9419ab0cdf6dc86f6ae327a594c3122c1c30b40337eb9575685061"},
+    {"path":"docs/semantic-specifications/ddh-phase-5/draft/manifest.json","sha256":"5c585b82887031954e078ca5187e874f90d11e404d94d4be3ff18899d55eb7d0"}
+  ]
+}
