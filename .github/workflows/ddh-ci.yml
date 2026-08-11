@@ -43,6 +43,10 @@ jobs:
         run: python docs/semantic-specifications/ddh-phase-0/validation/validate_phase0.py
       - name: Validate Phase 1 package
         run: python docs/semantic-specifications/ddh-phase-1/draft/validation/validate_phase1_spec.py
+      - name: Validate Phase 2 package
+        run: python docs/semantic-specifications/ddh-phase-2/draft/validation/validate_phase2_spec.py
+      - name: Validate Phase 3 package
+        run: python docs/semantic-specifications/ddh-phase-3/draft/validation/validate_phase3_spec.py
 
   required-windows-11:
     name: Required Windows 11 / Python 3.13
@@ -74,6 +78,10 @@ jobs:
         run: python docs/semantic-specifications/ddh-phase-0/validation/validate_phase0.py
       - name: Validate Phase 1 package
         run: python docs/semantic-specifications/ddh-phase-1/draft/validation/validate_phase1_spec.py
+      - name: Validate Phase 2 package
+        run: python docs/semantic-specifications/ddh-phase-2/draft/validation/validate_phase2_spec.py
+      - name: Validate Phase 3 package
+        run: python docs/semantic-specifications/ddh-phase-3/draft/validation/validate_phase3_spec.py
 
   latest-stable-compatibility:
     name: Latest stable / ${{ matrix.os }}
@@ -102,3 +110,7 @@ jobs:
         run: python docs/semantic-specifications/ddh-phase-0/validation/validate_phase0.py
       - name: Validate Phase 1 package
         run: python docs/semantic-specifications/ddh-phase-1/draft/validation/validate_phase1_spec.py
+      - name: Validate Phase 2 package
+        run: python docs/semantic-specifications/ddh-phase-2/draft/validation/validate_phase2_spec.py
+      - name: Validate Phase 3 package
+        run: python docs/semantic-specifications/ddh-phase-3/draft/validation/validate_phase3_spec.py
