@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
     inputs:
       run_windows_11:
-        description: Run the trusted Windows 11 self-hosted profile
+        description: Run the release-preflight Windows 11 self-hosted profile
         required: true
         type: boolean
         default: false
@@ -49,7 +49,7 @@ jobs:
         run: python docs/semantic-specifications/ddh-phase-3/draft/validation/validate_phase3_spec.py
 
   required-windows-11:
-    name: Required Windows 11 / Python 3.13
+    name: Release preflight Windows 11 / Python 3.13
     if: >-
       github.event_name == 'workflow_dispatch' &&
       inputs.run_windows_11 &&

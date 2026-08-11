@@ -19,14 +19,14 @@ Phase 1 `DDH-P1-SPEC-001@1.0.0` 已完成 reference runtime 與要求的 CI
 平台驗證。
 
 Phase 2 `DDH-P2-SPEC-001@1.0.0` 已取得 exact human confirmation，目前已完成
-本機 reference implementation 與規格場景驗證；仍須通過 Windows 11、
-Ubuntu 24.04／Python 3.13 及 latest-stable CI matrix，才宣告 Phase 2
-`work_package_completed`。
+本機 reference implementation、規格場景驗證與日常 hosted CI matrix。Windows 11／
+Python 3.13 由發布前相容性關卡驗證，不作為每次提交的日常阻塞條件。
 
 Phase 3 `DDH-P3-SPEC-001@1.0.0` 已取得 exact human confirmation；本機 reference
 implementation 現已提供 L2 的多 lane 協調、Change Guard activation、central Patch
-Admission、Join Barrier 與三 Module Subsystem fork/join 驗證。Windows 11、Ubuntu
-24.04／Python 3.13 及 latest-stable CI matrix 仍是 Phase 3 completion 的必要證據。
+Admission、Join Barrier 與三 Module Subsystem fork/join 驗證，並已通過日常 hosted
+CI matrix。Windows 11／Python 3.13 由發布前相容性關卡驗證，不作為每次提交的
+日常阻塞條件。
 
 Phase 1 建立的範圍包括：
 

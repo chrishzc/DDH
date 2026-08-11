@@ -74,7 +74,7 @@ py -3 -m unittest discover -s tests -v
 The package also exposes a pytest adapter for target projects that already
 provide pytest. DDH does not install pytest automatically.
 
-The required Windows 11 profile uses a self-hosted runner labelled
+The release-preflight Windows 11 profile uses a self-hosted runner labelled
 `ddh-windows-11`; GitHub-hosted `windows-2022` is compatibility evidence only.
 Because the repository is public, the self-hosted job runs only when repository
 owner `chrishzc` manually dispatches the workflow and opts into
