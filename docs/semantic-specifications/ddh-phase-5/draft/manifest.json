@@ -1,0 +1,26 @@
+{
+  "manifest_schema_version":"1.0.0",
+  "specification_id":"DDH-P5-SPEC-001",
+  "version":"1.0.0",
+  "status":"ready_for_confirmation",
+  "implementation_authority":"none_until_exact_human_confirmation",
+  "authority_root":true,
+  "architecture_scope":"DDH operational hardening and adaptive bounded execution",
+  "phase4_baseline":"phase4-source-snapshot.json",
+  "external_side_effect_budget":0,
+  "assets":[
+    {"path":"goal.md","sha256":"2bf4b06dc5c83240a72cea7210d582f871dd39ae9f8c7678bcf7c06e34d865e9"},
+    {"path":"runtime-requirements.md","sha256":"6f16244ee503a933115aa1d075101e4900cffc49485eccfe90f51580b00d4957"},
+    {"path":"operational-contract.md","sha256":"33d7727ff9708afcf754717a028eb286989fc74404401b6a594e253a5da028f9"},
+    {"path":"implementation-boundary.md","sha256":"1c20cf92e83c7c636c6e8aa7e4551ce583cf9c054d768c840975bcc0285d1dd2"},
+    {"path":"bootstrap-profile.json","sha256":"3e20b51a05144a61081afb4620915608d1dca58cc0b9e1cba22dec24f8a548f1"},
+    {"path":"acceptance-scenarios.json","sha256":"922cd6544a09d64b908289c140c243e959648040388d0cbbfa2c10d80db50321"},
+    {"path":"phase4-source-snapshot.json","sha256":"78b6eec205fa471bd1583689c07900f2f81907fd5ea44df62e8e99001bc060e5"},
+    {"path":"validation/validate_phase5_spec.py","sha256":"9331ae771f43214a0ddeba90a1304e66085f2a1a3b4eaa4a84656c807aeac03e"}
+  ],
+  "closure_digest_algorithm":"sha256",
+  "closure_digest_input":"UTF-8 lines sorted by path, each formatted as path:sha256",
+  "closure_digest":"bb56305eb6df1758764a08c909ceb487b2867c1624f4447d8287414f0325c36d",
+  "confirmation":{"required":true,"required_phrase_target":"DDH-P5-SPEC-001@1.0.0 plus closure_digest","confirmed":false},
+  "completion_claim":"phase5_specification_package_only"
+}

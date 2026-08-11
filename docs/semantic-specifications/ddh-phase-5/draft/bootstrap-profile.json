@@ -1,0 +1,13 @@
+{
+  "profile_id": "DDH-P5-BOOTSTRAP-001",
+  "version": "1.0.0",
+  "release_blocking_platforms": ["windows_11_x86_64", "ubuntu_24_04_x86_64"],
+  "python_versions": ["3.13", "latest_stable"],
+  "timeout": {"safety_factor_milli": 2000, "startup_margin_seconds": 30, "unknown_estimate_deadline_seconds": 600, "termination_grace_max_seconds": 30, "no_progress_floor_seconds": 120, "silence_is_progress_failure": false},
+  "output": {"byte_limit_required": true, "line_limit_required": true, "event_limit_required": true, "traceback_fingerprint_aggregation": true},
+  "temporary_roots": {"ownership_identity_required_for_cleanup": true, "uncertain_identity_action": "preserve_and_quarantine"},
+  "capability_states": ["available", "degraded", "unavailable", "unknown"],
+  "managed_assets": {"dry_run_required": true, "delta_preview_required": true, "atomic_apply_required": true, "post_apply_parity_required": true, "overwrite_user_customization": false},
+  "telemetry_authority": "non_authoritative_bounded_operations_only",
+  "external_operation_budget": 0
+}

@@ -1,0 +1,12 @@
+{
+  "snapshot_kind": "committed_phase4_baseline",
+  "commit_identity": "263feb1144b469cc85c1f07260d2aa974ab3f686",
+  "phase4_specification": "DDH-P4-SPEC-001@1.0.0",
+  "phase4_closure_digest": "cf95954a66a53f951cea3062d4b84a7eb3a72d606de6edfd352e6489515b7356",
+  "files": [
+    {"path":"src/ddh/verification_assets.py","sha256":"807175e9c1a318546b10d2b7568172a20c7c86e201214bcb62b2aa6f5c9de775"},
+    {"path":"tests/unit/test_phase4_verification_assets.py","sha256":"5ccac53454049738c7585b5007a5965e424bd6c6eedf7399e9bda91536a1a0e6"},
+    {"path":"tests/contract/test_phase4_acceptance_coverage.py","sha256":"82c1322b40445dcf6f1f603b3d1ad9f13ec1c04b717f2f8c43a0c0e554b6550e"},
+    {"path":"docs/semantic-specifications/ddh-phase-4/draft/manifest.json","sha256":"3c297752a58180a41acbc7c00ac504ee560a8a94361993bd292350f915e36bd7"}
+  ]
+}
