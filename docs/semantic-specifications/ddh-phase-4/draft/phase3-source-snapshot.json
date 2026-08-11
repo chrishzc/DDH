@@ -1,0 +1,23 @@
+{
+  "snapshot_kind": "committed_phase3_baseline",
+  "commit_identity": "529eef0c13a8a0df4f135a7fca6142bc2e0a739d",
+  "git_status_basis": "Phase 3 is the committed reference baseline used by this package.",
+  "phase3_specification": "DDH-P3-SPEC-001@1.0.0",
+  "phase3_closure_digest": "8add85a45d96bdbc8b158405d87c510efcbe3403639c036034d8f83584053a00",
+  "files": [
+    {"path":"src/ddh/__init__.py","sha256":"37f74ff945ea3e362691991cfdb5f42c2ebfe9b09a8be2cf8d802b2095654634"},
+    {"path":"src/ddh/candidate.py","sha256":"77b4c949873abe801cccbf0fc3274f264316e8154e50f5ae3bbf99c3cc5d3d1c"},
+    {"path":"src/ddh/runtime.py","sha256":"c8e8d184c461f126809bec5bdc7e11556252f436265e054e45addbec573e036f"},
+    {"path":"src/ddh/specification.py","sha256":"beada82e97c01377f98350ca4c179d1531e461488784f2caf68cfdb05f9ecae2"},
+    {"path":"src/ddh/coordination.py","sha256":"803380d37f6756b7134c65bfd15ba33fad793636942e9ca193cd4704ab4a51c8"},
+    {"path":"src/ddh/integration.py","sha256":"3b1be7145944dd8591665905cae58869780d02d469efbc18db0b8a5c9893a427"},
+    {"path":"src/ddh/mutation.py","sha256":"714436a7504b3817183ef3a8e508cdd7da7de96b93f1b5ecdf5c08fd2dad7295"},
+    {"path":"docs/operations/ddh-phase-3-parallel-integration.md","sha256":"4f2dc57bcd4be86c17c0023bc6c7957bc455dd509edc550f6ad0e46d839c7393"},
+    {"path":"tests/contract/test_phase3_specification_contract.py","sha256":"abf56a5d3ff97f5049bbc3d71b01ca55d4f9cec444ee6d3c96dcb8961f656e66"},
+    {"path":"tests/contract/test_phase3_acceptance_coverage.py","sha256":"ca428e302450ce8b9436bb49cfd19623c51a09898c810d4350ff3a2f8fca23a4"},
+    {"path":"tests/integration/test_phase3_parallel_vertical_slice.py","sha256":"34ff45800db929ab78cfbe920e03549406b319c61d7e7e6a4076cfe1e0308423"},
+    {"path":"tests/unit/test_phase3_coordination.py","sha256":"cb5c6bad827ea807254dff475bc2666ca9aa9e5882975fad9911f72e0b52d026"},
+    {"path":"docs/semantic-specifications/ddh-phase-3/README.md","sha256":"1c296229a31ccabee280d26c69ac3f5a659b63bce99dd5dd00006e3e7d01c0aa"},
+    {"path":"docs/semantic-specifications/ddh-phase-3/draft/manifest.json","sha256":"585f8db9a934a88d4a3988b14611da488786e76390a9a66ddd289eb57d4a2179"}
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "profile_id": "DDH-P4-BOOTSTRAP-001",
+  "version": "1.0.0",
+  "verification_model": "tool_neutral_verification_asset",
+  "scope_layers": ["Module", "Subsystem", "Domain", "Global"],
+  "catalog": {
+    "rebuildable_from_repository": true,
+    "authority": "discovery_index_only"
+  },
+  "admission": {
+    "test_auditor_required": true,
+    "candidate_to_executor_direct_handoff": false,
+    "immutable_active_manifest_required": true,
+    "known_bad_or_mutation_evidence_required": true
+  },
+  "currentness": {
+    "map_query_must_be_consumed_when_available": true,
+    "bounded_live_source_fallback": true,
+    "minimal_affected_reevaluation": true
+  },
+  "cost_controls": {
+    "routine_reevaluation_agent_token_budget": 0,
+    "allow_ordering_sharding_cache_parallelism_placement": true,
+    "allow_semantic_weakening": false,
+    "output_deduplication_required": true
+  },
+  "stress": {
+    "requires_spec_profile_or_slo_applicability": true,
+    "default": "not_applicable_with_business_reason"
+  },
+  "external_operation_budget": 0
+}
