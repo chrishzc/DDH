@@ -60,6 +60,9 @@ jobs:
       - X64
       - ddh-windows-11
     timeout-minutes: 30
+    defaults:
+      run:
+        shell: cmd
     env:
       PYTHONPATH: ${{ github.workspace }}/src
     steps:
