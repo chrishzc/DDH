@@ -1,0 +1,86 @@
+{
+  "manifest_schema_version": "1.0.0",
+  "specification_id": "DDH-P3-SPEC-001",
+  "version": "1.0.0",
+  "status": "ready_for_confirmation",
+  "implementation_authority": "none_until_exact_human_confirmation",
+  "risk_class": "L2",
+  "runtime_mode": "parallel_when_beneficial_with_serial_fallback",
+  "architecture_scope": "DDH runtime parallel work coordination and central Subsystem integration",
+  "phase2_baseline_commit": "5d0074c88b08826f0481f01fb6eef4a4122e6b7f",
+  "authority_root": true,
+  "goal_source": "goal.md",
+  "acceptance_source": "acceptance-scenarios.json",
+  "coordination_contract": "coordination-contract.md",
+  "bootstrap_profile": "bootstrap-profile.json",
+  "implementation_boundary": "implementation-boundary.md",
+  "reference_workload": "reference-parallel-subsystem-fixture.md",
+  "system_map_authority": "actual_architecture_index_not_ssot",
+  "authority_references": [
+    "DDH-P0-SPEC-001@1.1.0",
+    "DDH-P2-SPEC-001@1.0.0",
+    "SPEC-WP-001",
+    "Decision-0003",
+    "Decision-0007",
+    "Decision-0017",
+    "Decision-0018",
+    "Decision-0019",
+    "Decision-0021",
+    "Decision-0025",
+    "PWC-CIM-001",
+    "PWC-CIM-002",
+    "PWC-INTEG-003",
+    "SMQ-001"
+  ],
+  "assets": [
+    {
+      "path": "goal.md",
+      "sha256": "b1f48096f18167c414a2a31f03376f03aefc5ca6d1adde34eda5ebfe3be8ea84"
+    },
+    {
+      "path": "runtime-requirements.md",
+      "sha256": "dfe3e4bcc201f64f7bf97bace9acfa03cdc21d90631df5b622706efddeacf08f"
+    },
+    {
+      "path": "coordination-contract.md",
+      "sha256": "74336e388c515e86e36b5ab63784202cc4bfbbf45df0cd53e40bb018a9bb0ef4"
+    },
+    {
+      "path": "implementation-boundary.md",
+      "sha256": "9d9764bb40734f51f72d161550049f3fe7a9649d0712e4b7f6060f3d1ea0e51b"
+    },
+    {
+      "path": "reference-parallel-subsystem-fixture.md",
+      "sha256": "941af160ca08dbbddb6522e796e26afb444149f17b4e4247a9dbfcdacdadfd4c"
+    },
+    {
+      "path": "acceptance-scenarios.json",
+      "sha256": "deec003c9de636cf93b5ab99d144022a479d763277313cd7c43d994831185108"
+    },
+    {
+      "path": "bootstrap-profile.json",
+      "sha256": "a9b3ae44e899bd3b6268ee49e46fa46f2dc9cdfa5eeb73113d63f9040c4defe2"
+    },
+    {
+      "path": "validation/validate_phase3_spec.py",
+      "sha256": "d32d1a9dfaadecc52fd189f04e82bdd9a8ff9bb288204d42e248a589a6c351b0"
+    }
+  ],
+  "closure_digest_algorithm": "sha256",
+  "closure_digest_input": "UTF-8 lines sorted by path, each formatted as path:sha256",
+  "closure_digest": "8add85a45d96bdbc8b158405d87c510efcbe3403639c036034d8f83584053a00",
+  "confirmation": {
+    "required": true,
+    "required_phrase_target": "DDH-P3-SPEC-001@1.0.0 plus closure_digest",
+    "confirmed": false
+  },
+  "external_side_effects": "prohibited",
+  "completion_outcomes_evaluated": [
+    "work_package_completed",
+    "subsystem_integrated"
+  ],
+  "higher_layer_completion_outcome": {
+    "domain_accepted": "not_evaluated",
+    "release_candidate": "not_evaluated"
+  }
+}

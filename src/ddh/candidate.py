@@ -168,16 +168,24 @@ class CandidateController:
         target.write_text(content, encoding="utf-8", newline="\n")
 
     def _scan(self) -> dict[str, FileRecord]:
-        records: dict[str, FileRecord] = {}
-        for path in sorted(self.root.rglob("*")):
-            if ".git" in path.parts:
-                continue
-            relative = path.relative_to(self.root).as_posix()
-            if path.is_symlink():
-                records[relative] = link_record(path, relative)
-            elif path.is_file():
-                records[relative] = file_record(path, relative)
-        return records
+        return workspace_records(self.root)
+
+
+def workspace_records(root: Path) -> dict[str, FileRecord]:
+    records: dict[str, FileRecord] = {}
+    for path in sorted(root.rglob("*")):
+        if ".git" in path.parts:
+            continue
+        relative = path.relative_to(root).as_posix()
+        if path.is_symlink():
+            records[relative] = link_record(path, relative)
+        elif path.is_file():
+            records[relative] = file_record(path, relative)
+    return records
+
+
+def workspace_manifest_digest(root: Path) -> str:
+    return manifest_digest(workspace_records(root))
 
 
 def file_record(path: Path, relative: str) -> FileRecord:

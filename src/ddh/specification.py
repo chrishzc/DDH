@@ -96,8 +96,8 @@ class SpecificationCompiler:
                 raise ContractError("specification_sequence_duplicate")
         if not isinstance(document["budgets"], dict):
             raise ContractError("specification_budgets_type_invalid")
-        if document["risk_class"] != "L1":
-            raise ContractError("risk_class_not_supported_phase1")
+        if document["risk_class"] not in {"L1", "L2"}:
+            raise ContractError("risk_class_not_supported")
 
     def _validate_budgets(self, budgets: dict[str, Any]) -> None:
         for name in ("agent_attempts", "effective_context_tokens"):

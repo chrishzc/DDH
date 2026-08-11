@@ -1,0 +1,366 @@
+{
+  "acceptance_catalog_id": "DDH-P3-ACCEPTANCE-001",
+  "specification": "DDH-P3-SPEC-001@1.0.0",
+  "required_outcome": "passed_complete_current",
+  "required_capability_groups": [
+    "parallel_decision",
+    "context_and_activation",
+    "independent_test_construction",
+    "shared_resource_coordination",
+    "handoff_and_staleness",
+    "central_admission",
+    "quiescence_and_join",
+    "integrated_verification",
+    "system_map_consumption",
+    "completion_separation",
+    "automatic_fallback_and_recovery",
+    "stress_and_cost"
+  ],
+  "scenarios": [
+    {
+      "scenario_id": "P3-FLOW-001",
+      "capability_group": "quiescence_and_join",
+      "class": "end_to_end",
+      "given": "A confirmed L2 PortableWorkspace Subsystem has three separable Modules, fixed contracts, independent product and acceptance zones, and sufficient budgets.",
+      "when": "The Phase 3 asynchronous fork, central join and integrated verification vertical slice executes.",
+      "expected": "All current Module groups join deterministically, the immutable integrated Candidate passes Module and Subsystem verification, work_package_completed and subsystem_integrated are independently true, and no routine human checkpoint occurs."
+    },
+    {
+      "scenario_id": "P3-DECIDE-001",
+      "capability_group": "parallel_decision",
+      "class": "benefit_and_safety",
+      "given": "Three work groups have fixed contracts, disjoint primary writes, mechanically supported isolation and projected benefit greater than total coordination cost.",
+      "when": "The Work Coordinator evaluates parallel execution.",
+      "expected": "Return parallel_allowed with consumed evidence, reasons, selected mutation mode and projected costs."
+    },
+    {
+      "scenario_id": "P3-DECIDE-002",
+      "capability_group": "parallel_decision",
+      "class": "cost_fallback",
+      "given": "The work is separable but environment, Context, Critic and integration cost exceed expected wall-time savings.",
+      "when": "The Work Coordinator evaluates net benefit.",
+      "expected": "Return parallel_not_worthwhile and execute serially without weakening any safety or acceptance invariant."
+    },
+    {
+      "scenario_id": "P3-DECIDE-003",
+      "capability_group": "parallel_decision",
+      "class": "unsafe_boundary",
+      "given": "Two writers need one unresolved logical resource and neither guarded shared containment nor isolated Candidate admission is available.",
+      "when": "The Work Coordinator evaluates boundary safety.",
+      "expected": "Return parallel_unsafe and use an eligible serial route; prompt instructions cannot authorize parallel writes."
+    },
+    {
+      "scenario_id": "P3-DECIDE-004",
+      "capability_group": "parallel_decision",
+      "class": "human_boundary",
+      "given": "Parallelization requires changing a public interface not authorized by the Task Specification.",
+      "when": "The Work Coordinator evaluates the proposed partition.",
+      "expected": "Return needs_human_decision for affected work and preserve unrelated safe progress."
+    },
+    {
+      "scenario_id": "P3-ACTIVATE-001",
+      "capability_group": "context_and_activation",
+      "class": "mechanical_activation",
+      "given": "A planned lane has an exact Work Package, generation, writer, base Candidate, resource digest and mutation mode tuple.",
+      "when": "The Change Guard establishes a boundary for the exact tuple.",
+      "expected": "Return boundary_active before the coordinator marks the lane active or exposes a write-capable driver."
+    },
+    {
+      "scenario_id": "P3-ACTIVATE-002",
+      "capability_group": "context_and_activation",
+      "class": "activation_mismatch",
+      "given": "Boundary provisioning returns a stale generation or a different resource-set digest.",
+      "when": "The Work Coordinator compares the activation tuple.",
+      "expected": "Keep the lane non-writable and automatically select an approved isolated or serial route, otherwise emit one platform_blocked result."
+    },
+    {
+      "scenario_id": "P3-CONTEXT-001",
+      "capability_group": "context_and_activation",
+      "class": "bounded_context",
+      "given": "A ManifestLoader lane needs one reverse-dependent contract and a bounded source excerpt.",
+      "when": "Its Context Envelope and one purpose-bound increment are materialized.",
+      "expected": "Include only consumed architecture facts and required content, charge the Context budget once, and leave write_authority_changed false."
+    },
+    {
+      "scenario_id": "P3-CONTEXT-002",
+      "capability_group": "context_and_activation",
+      "class": "broad_read_request",
+      "given": "A child lane requests the entire Domain without naming a decision question.",
+      "when": "The Context request is evaluated.",
+      "expected": "Return a bounded index or summary, or deny the request; do not inject the Domain contents or expand write scope."
+    },
+    {
+      "scenario_id": "P3-TEST-001",
+      "capability_group": "independent_test_construction",
+      "class": "product_test_separation",
+      "given": "Product and acceptance writers share fixed expected behavior but have distinct physical and logical resources.",
+      "when": "Both lanes construct their patches asynchronously.",
+      "expected": "Track both as writes, prevent cross-zone mutation, and require independent Test Auditor admission before final use."
+    },
+    {
+      "scenario_id": "P3-TEST-002",
+      "capability_group": "independent_test_construction",
+      "class": "provisional_red",
+      "given": "An acceptance patch is admitted before the matching product implementation exists.",
+      "when": "The draft acceptance executes on the current Candidate.",
+      "expected": "Treat RED as provisional evidence, not a test-author failure, then rerun the same acceptance after product integration."
+    },
+    {
+      "scenario_id": "P3-TEST-003",
+      "capability_group": "independent_test_construction",
+      "class": "child_completion_claim",
+      "given": "A child reports all local checks passed and claims the Work Package is complete.",
+      "when": "The coordinator receives the result.",
+      "expected": "Record only candidate_subresult_submitted and wait for central integration and current integrated verification."
+    },
+    {
+      "scenario_id": "P3-SHARED-001",
+      "capability_group": "shared_resource_coordination",
+      "class": "single_shared_writer",
+      "given": "A product lane and acceptance lane both need an approved shared fixture.",
+      "when": "The shared change is scheduled.",
+      "expected": "Assign exactly one active writer, refresh dependent lanes after admission, and allow unrelated lanes to continue."
+    },
+    {
+      "scenario_id": "P3-SHARED-002",
+      "capability_group": "shared_resource_coordination",
+      "class": "generator_group",
+      "given": "A generator source and its outputs span several non-overlapping paths but cannot be verified independently.",
+      "when": "Resource ownership is resolved.",
+      "expected": "Treat the generator and outputs as one logical resource group with a single writer."
+    },
+    {
+      "scenario_id": "P3-SHARED-003",
+      "capability_group": "shared_resource_coordination",
+      "class": "cross_lane_request",
+      "given": "A lane requests a change in another active lane's resource with relevant root-cause evidence.",
+      "when": "The Work Coordinator evaluates the request.",
+      "expected": "Route, repartition or serialize the change; the request itself grants no write before a new exact generation is active."
+    },
+    {
+      "scenario_id": "P3-SHARED-004",
+      "capability_group": "shared_resource_coordination",
+      "class": "targeted_invalidation",
+      "given": "A shared contract admitted by its single owner affects PathNormalizer and ManifestIndex but not ManifestLoader.",
+      "when": "Dependency invalidation is routed.",
+      "expected": "Create new generations and Context increments only for the two dependent groups."
+    },
+    {
+      "scenario_id": "P3-HANDOFF-001",
+      "capability_group": "handoff_and_staleness",
+      "class": "safe_handoff",
+      "given": "A writer has useful partial delta and all in-flight mutation state is mechanically known.",
+      "when": "The lane transfers to a replacement writer.",
+      "expected": "Fence and quiesce the old generation, preserve user and Agent deltas, revoke it, then activate a new generation from the current Candidate."
+    },
+    {
+      "scenario_id": "P3-HANDOFF-002",
+      "capability_group": "handoff_and_staleness",
+      "class": "unknown_mutation",
+      "given": "A writer disappears while an operation may still affect its private or guarded Candidate.",
+      "when": "Handoff safety is evaluated.",
+      "expected": "Return handoff_recovery_required until mutation closure is proven; heartbeat loss and process exit are insufficient."
+    },
+    {
+      "scenario_id": "P3-HANDOFF-003",
+      "capability_group": "handoff_and_staleness",
+      "class": "late_writer",
+      "given": "The old writer submits a valid-looking patch after its generation was revoked.",
+      "when": "Central admission checks the submission.",
+      "expected": "Return rejected_stale_result and leave the current Candidate unchanged."
+    },
+    {
+      "scenario_id": "P3-ADMIT-001",
+      "capability_group": "central_admission",
+      "class": "mixed_scope_patch",
+      "given": "One private patch includes allowed Module edits and one protected root configuration edit.",
+      "when": "Central Patch Admission reconciles actual touched resources.",
+      "expected": "Reject the patch as a whole, preserve it only for bounded rework, and admit no partial delta."
+    },
+    {
+      "scenario_id": "P3-ADMIT-002",
+      "capability_group": "central_admission",
+      "class": "non_overlapping_stale_base",
+      "given": "A patch does not overlap newer content but its dependency closure changed since its base Candidate.",
+      "when": "Freshness admission executes.",
+      "expected": "Return accepted_revalidation_required with a new Candidate identity and no reuse of the old local PASS."
+    },
+    {
+      "scenario_id": "P3-ADMIT-003",
+      "capability_group": "central_admission",
+      "class": "semantic_conflict",
+      "given": "Two patches pass independently but disagree on a shared state transition after integration.",
+      "when": "Central integration evaluates their combined semantics.",
+      "expected": "Return integration_conflict_rework_required and raise analysis to the Subsystem layer."
+    },
+    {
+      "scenario_id": "P3-ADMIT-004",
+      "capability_group": "central_admission",
+      "class": "order_dependence",
+      "given": "The same patch set produces different content or behavior under two application orders.",
+      "when": "The deterministic integration check executes.",
+      "expected": "Reject the unstable integration rather than selecting the order that happens to pass."
+    },
+    {
+      "scenario_id": "P3-JOIN-001",
+      "capability_group": "quiescence_and_join",
+      "class": "out_of_order_completion",
+      "given": "PathNormalizer and ManifestIndex are ready while ManifestLoader continues bounded repair.",
+      "when": "The Join Barrier reevaluates readiness.",
+      "expected": "Keep early groups waiting with writers stopped and zero Agent cost; do not create a partial Subsystem Candidate."
+    },
+    {
+      "scenario_id": "P3-JOIN-002",
+      "capability_group": "quiescence_and_join",
+      "class": "partial_quiescence",
+      "given": "All groups claim completion but one product writer remains active.",
+      "when": "Candidate freeze is requested.",
+      "expected": "Return waiting_for_quiescence or recovery_required and create no final Candidate manifest."
+    },
+    {
+      "scenario_id": "P3-JOIN-003",
+      "capability_group": "quiescence_and_join",
+      "class": "freeze_race",
+      "given": "A pre-fence operation is draining and a background writer attempts a new post-fence mutation.",
+      "when": "The Change Guard executes freeze.",
+      "expected": "Drain and reconcile the admitted pre-fence operation, reject the post-fence mutation, then freeze only after complete quiescence."
+    },
+    {
+      "scenario_id": "P3-JOIN-004",
+      "capability_group": "quiescence_and_join",
+      "class": "completion_order_independence",
+      "given": "The three Module groups finish in many different orders with identical current deltas.",
+      "when": "The Join Barrier integrates them.",
+      "expected": "Use the fixed integration order and produce one identical source snapshot digest."
+    },
+    {
+      "scenario_id": "P3-VERIFY-001",
+      "capability_group": "integrated_verification",
+      "class": "integrated_rerun",
+      "given": "All Module groups have local PASS results bound to their private snapshots.",
+      "when": "The integrated Verification Subject is created.",
+      "expected": "Rerun required Module assets on the integrated Candidate, then execute Subsystem scenarios and affected regressions."
+    },
+    {
+      "scenario_id": "P3-VERIFY-002",
+      "capability_group": "integrated_verification",
+      "class": "subsystem_failure_repair",
+      "given": "All Module checks pass but the cross-Module deterministic-index scenario fails.",
+      "when": "Failure analysis consumes actual impact facts.",
+      "expected": "Analyze at Subsystem scope, reopen only demonstrated responsible Module lanes, and rerun the current integration closure."
+    },
+    {
+      "scenario_id": "P3-MAP-001",
+      "capability_group": "system_map_consumption",
+      "class": "pre_fork_consumption",
+      "given": "A current-enough actual-only branch view returns Module dependencies and reverse dependencies.",
+      "when": "The partition plan and Context Envelopes are built.",
+      "expected": "Record the query identity and exact consumed nodes and relations in both downstream artifacts."
+    },
+    {
+      "scenario_id": "P3-MAP-002",
+      "capability_group": "system_map_consumption",
+      "class": "impact_underestimated",
+      "given": "The actual integrated delta reveals a reverse dependent outside the predicted verification closure.",
+      "when": "Pre-join impact reconciliation executes.",
+      "expected": "Expand read and verification closure, report Map drift, and keep write_authority_changed false."
+    },
+    {
+      "scenario_id": "P3-MAP-003",
+      "capability_group": "system_map_consumption",
+      "class": "bounded_fallback",
+      "given": "The System Map is partial for one changed Module while other queried areas are usable.",
+      "when": "The coordinator needs current impact closure.",
+      "expected": "Use bounded live-source discovery only for the partial area and continue automatically when impact becomes known."
+    },
+    {
+      "scenario_id": "P3-MAP-004",
+      "capability_group": "system_map_consumption",
+      "class": "unused_query",
+      "given": "A System Map query ran but the join and completion inputs contain no consumed nodes or relations.",
+      "when": "Completion evaluates impact closure.",
+      "expected": "Reject the impact-complete claim because query invocation without consumption is insufficient."
+    },
+    {
+      "scenario_id": "P3-COMPLETE-001",
+      "capability_group": "completion_separation",
+      "class": "layered_completion",
+      "given": "The reference Work Package and exact PortableWorkspace Subsystem scenarios pass on the current frozen Candidate.",
+      "when": "Layer completion decisions execute.",
+      "expected": "Evaluate work_package_completed and subsystem_integrated separately and leave domain_accepted and release_candidate not_evaluated."
+    },
+    {
+      "scenario_id": "P3-COMPLETE-002",
+      "capability_group": "completion_separation",
+      "class": "work_package_only",
+      "given": "A narrower Work Package satisfies its own fixed acceptance but no Subsystem specification was evaluated.",
+      "when": "Completion decisions execute.",
+      "expected": "Allow work_package_completed while subsystem_integrated remains not_evaluated."
+    },
+    {
+      "scenario_id": "P3-RECOVER-001",
+      "capability_group": "automatic_fallback_and_recovery",
+      "class": "parallel_to_serial",
+      "given": "Repeated reciprocal resource requests remove the measured benefit of the active parallel plan.",
+      "when": "The Work Coordinator reevaluates execution.",
+      "expected": "Fence current writers, preserve admitted and useful private delta, and continue through deterministic serial integration without human input."
+    },
+    {
+      "scenario_id": "P3-RECOVER-002",
+      "capability_group": "automatic_fallback_and_recovery",
+      "class": "restart_replay",
+      "given": "The runtime restarts with duplicate, stale and out-of-order lane and admission events.",
+      "when": "Current coordination state is reconstructed from bounded manifests.",
+      "expected": "Restore only current generations, handle duplicates idempotently, reject stale events and avoid duplicate Candidate admission."
+    },
+    {
+      "scenario_id": "P3-RECOVER-003",
+      "capability_group": "automatic_fallback_and_recovery",
+      "class": "scope_exception",
+      "given": "Integrated verification proves that completion requires a repair in a Module outside current write scope.",
+      "when": "Recovery routing evaluates the repair.",
+      "expected": "Preserve Candidate and evidence, emit one structured scope exception and do not grant the outside Module write authority."
+    },
+    {
+      "scenario_id": "P3-RECOVER-004",
+      "capability_group": "automatic_fallback_and_recovery",
+      "class": "external_boundary",
+      "given": "A child lane requests a database, credential, deployment or network operation.",
+      "when": "Execution routing evaluates the request.",
+      "expected": "Return external_high_risk_flow_required and do not execute, retry or treat local ownership as external authority."
+    },
+    {
+      "scenario_id": "P3-STRESS-001",
+      "capability_group": "stress_and_cost",
+      "class": "high_contention",
+      "given": "Eight writers submit ten thousand permitted, forbidden, stale, duplicate and shared-resource operations with deterministic seeds.",
+      "when": "Activation, mutation and central admission are exercised in memory.",
+      "expected": "False allow is zero, duplicate admission is zero, unrelated valid lanes are not globally serialized, and retained diagnostics remain bounded."
+    },
+    {
+      "scenario_id": "P3-STRESS-002",
+      "capability_group": "stress_and_cost",
+      "class": "event_storm",
+      "given": "Shared-contract changes, invalidations and out-of-order completion events arrive repeatedly across many Module generations.",
+      "when": "The coordinator coalesces events and reevaluates the join.",
+      "expected": "No affected lane is missed, no stale generation joins, and routine event handling consumes zero Agent tokens."
+    },
+    {
+      "scenario_id": "P3-STRESS-003",
+      "capability_group": "stress_and_cost",
+      "class": "bounded_context_and_wait",
+      "given": "A large Subsystem has many Module summaries, one slow lane and multiple early-complete lanes.",
+      "when": "Context, waiting and scheduling are measured.",
+      "expected": "No Agent receives whole-Subsystem source by default, early lanes release active resources, and the slow lane remains governed by adaptive timeout and fixed budgets."
+    },
+    {
+      "scenario_id": "P3-STRESS-004",
+      "capability_group": "stress_and_cost",
+      "class": "dirty_baseline",
+      "given": "The reference workspace includes required pre-existing user changes equal in content to part of an Agent delta.",
+      "when": "Private Candidates, admission and final manifest are built.",
+      "expected": "User and Agent provenance remain distinguishable, no reset or stash occurs, and the complete functional baseline is preserved."
+    }
+  ]
+}
+

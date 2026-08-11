@@ -1,7 +1,14 @@
 """Demand-Driven Harness reference runtime."""
 
 from ddh.failure import ExceptionReport, FailureBundle, FailureProgress
-from ddh.runtime import Phase1Runtime, Phase2Runtime, RuntimeRequest
+from ddh.runtime import (
+    ParallelRuntimeRequest,
+    ParallelWorkPlan,
+    Phase1Runtime,
+    Phase2Runtime,
+    Phase3Runtime,
+    RuntimeRequest,
+)
 
 __all__ = [
     "ExceptionReport",
@@ -9,6 +16,9 @@ __all__ = [
     "FailureProgress",
     "Phase1Runtime",
     "Phase2Runtime",
+    "Phase3Runtime",
+    "ParallelRuntimeRequest",
+    "ParallelWorkPlan",
     "RuntimeRequest",
 ]
 __version__ = "0.1.0"

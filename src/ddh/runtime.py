@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import shutil
 import tempfile
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import asdict, dataclass, replace
 from pathlib import Path
 from typing import Protocol
@@ -20,7 +21,17 @@ from ddh.candidate import (
     CandidateController,
     ChangeSet,
     FrozenCandidate,
+    workspace_manifest_digest,
 )
+from ddh.coordination import (
+    LaneSubmission,
+    ModuleWorkGroup,
+    ParallelAssessmentInput,
+    WorkCoordinator,
+    WorkLane,
+)
+from ddh.integration import CentralIntegrator, JoinBarrier
+from ddh.mutation import ChangeGuard, WriteAssignment
 from ddh.completion import CompletionDecision, CompletionJudge
 from ddh.context import (
     ContextCurator,
@@ -2246,3 +2257,403 @@ def _restore_result(value: dict[str, object]) -> VerificationResult:
         stderr=value["stderr"],
         output_truncated=value["output_truncated"],
     )
+
+
+class LaneVerificationPort(Protocol):
+    """Runs local lane checks without trusting the worker's completion claim."""
+
+    def verify(self, lane: WorkLane, submission: LaneSubmission) -> bool: ...
+
+
+@dataclass(frozen=True)
+class ParallelWorkPlan:
+    groups: tuple[ModuleWorkGroup, ...]
+    lanes: tuple[WorkLane, ...]
+    integration_order: tuple[str, ...]
+    projected_parallel_cost: int
+    projected_serial_cost: int
+    mutation_mode: str = "isolated_candidate"
+    shared_resource_owners: tuple[tuple[str, str], ...] = ()
+
+
+@dataclass(frozen=True)
+class ParallelRuntimeRequest:
+    runtime_request: RuntimeRequest
+    plan: ParallelWorkPlan
+
+
+@dataclass(frozen=True)
+class Phase3Outcome:
+    completion: CompletionDecision
+    candidate: FrozenCandidate | None
+    lane_submissions: tuple[LaneSubmission, ...]
+    results: tuple[VerificationResult, ...]
+    parallel_result: str
+    consumed_impact_facts: tuple[str, ...]
+
+
+class Phase3Runtime:
+    """Reference L2 fork/join runtime with central Candidate integration."""
+
+    def __init__(
+        self,
+        impact_resolver: ImpactResolver,
+        lane_drivers: dict[str, AgentDriverPort],
+        asset_provider: VerificationAssetProvider,
+        lane_verifier: LaneVerificationPort,
+        telemetry: JsonlTelemetry,
+    ) -> None:
+        self._impact_resolver = impact_resolver
+        self._lane_drivers = dict(lane_drivers)
+        self._asset_provider = asset_provider
+        self._lane_verifier = lane_verifier
+        self._telemetry = telemetry
+        self._compiler = SpecificationCompiler()
+        self._agent_validator = AgentResultValidator()
+        self._auditor = TestAuditor()
+        self._runner = VerificationRunner()
+
+    # This orchestration stays linear so authority transitions remain auditable.
+    def execute(self, request: ParallelRuntimeRequest) -> Phase3Outcome:
+        runtime_request = request.runtime_request
+        specification = self._compiler.compile(
+            runtime_request.workload_document,
+            runtime_request.confirmation,
+        )
+        if specification.risk_class != "L2":
+            raise ContractError("phase3_requires_l2_specification")
+        plan = request.plan
+        impact = self._resolve_impact(specification, runtime_request, "parallel_partitioning", ())
+        coordinator = WorkCoordinator()
+        for group in plan.groups:
+            coordinator.register_group(group)
+        for lane in plan.lanes:
+            coordinator.register_lane(lane)
+        for resource, lane_id in plan.shared_resource_owners:
+            if coordinator.shared_owner(resource, lane_id) != lane_id:
+                return self._blocked("parallel_unsafe", impact)
+        assessment = coordinator.assess(
+            ParallelAssessmentInput(
+                independent_work_units=len(plan.lanes),
+                logical_overlap=self._unowned_logical_overlap(
+                    plan.lanes,
+                    dict(plan.shared_resource_owners),
+                ),
+                mechanical_write_separation=plan.mutation_mode == "isolated_candidate",
+                projected_parallel_cost=plan.projected_parallel_cost,
+                projected_serial_cost=plan.projected_serial_cost,
+            )
+        )
+        if assessment.result not in {"parallel_allowed", "parallel_not_worthwhile"}:
+            return self._blocked(assessment.result, impact)
+        base_candidate = CandidateReference(
+            f"baseline-{runtime_request.invocation_id or 'phase3'}",
+            0,
+            workspace_manifest_digest(runtime_request.source_root),
+        )
+        guard = ChangeGuard()
+        active_lanes, assignments = self._activate_lanes(
+            coordinator,
+            guard,
+            plan.lanes,
+            base_candidate,
+            plan.mutation_mode,
+        )
+        submissions = self._run_lanes(
+            specification,
+            runtime_request,
+            impact,
+            active_lanes,
+            base_candidate,
+            coordinator,
+            parallel=assessment.result == "parallel_allowed",
+        )
+        self._mark_groups_verified(coordinator, plan.groups)
+        if not coordinator.ready_to_join(tuple(group.group_id for group in plan.groups)):
+            return self._blocked("waiting_for_current_lanes", impact, submissions)
+        integrator = CentralIntegrator(guard)
+        preparation = integrator.admit(
+            runtime_request.source_root,
+            runtime_request.invocation_root / "phase3-integration-candidate",
+            specification.authority,
+            tuple(coordinator.lanes[lane.lane_id] for lane in plan.lanes),
+            assignments,
+            submissions,
+            plan.integration_order,
+            specification.write_scope,
+            specification.prohibitions,
+        )
+        if preparation.controller is None:
+            return self._blocked(preparation.outcome, impact, submissions)
+        JoinBarrier(guard).ensure_quiescent(
+            tuple(coordinator.lanes[lane.lane_id] for lane in plan.lanes)
+        )
+        integrated = integrator.freeze(preparation)
+        if integrated.candidate is None:
+            return self._blocked(integrated.outcome, impact, submissions)
+        refreshed_impact = self._resolve_impact(
+            specification,
+            runtime_request,
+            "pre_join_actual_delta_reconciliation",
+            integrated.candidate.changes.changed_paths,
+        )
+        outcome = self._verify_integrated(
+            specification,
+            integrated.candidate,
+            refreshed_impact,
+        )
+        self._telemetry.emit(
+            TelemetryEvent(
+                "phase3_join_completed",
+                runtime_request.invocation_id or "phase3",
+                {
+                    "parallel_result": assessment.result,
+                    "candidate_generation": integrated.candidate.reference.generation,
+                    "subsystem_integrated": outcome.completion.subsystem_integrated,
+                },
+            )
+        )
+        return Phase3Outcome(
+            outcome.completion,
+            integrated.candidate,
+            submissions,
+            outcome.results,
+            assessment.result,
+            refreshed_impact.consumed_facts,
+        )
+
+    def _activate_lanes(
+        self,
+        coordinator: WorkCoordinator,
+        guard: ChangeGuard,
+        lanes: tuple[WorkLane, ...],
+        base_candidate: CandidateReference,
+        mode: str,
+    ) -> tuple[tuple[WorkLane, ...], tuple[WriteAssignment, ...]]:
+        active: list[WorkLane] = []
+        assignments: list[WriteAssignment] = []
+        for lane in lanes:
+            assignment = guard.activate(lane, base_candidate, mode)
+            active.append(coordinator.activate(lane.lane_id, assignment.boundary_id))
+            assignments.append(assignment)
+        return tuple(active), tuple(assignments)
+
+    # Request construction and concurrent collection stay adjacent to bind one generation.
+    def _run_lanes(
+        self,
+        specification: WorkloadSpecification,
+        runtime_request: RuntimeRequest,
+        impact: ImpactClosure,
+        lanes: tuple[WorkLane, ...],
+        base_candidate: CandidateReference,
+        coordinator: WorkCoordinator,
+        parallel: bool,
+    ) -> tuple[LaneSubmission, ...]:
+        requests = {
+            lane.lane_id: WorkRequest(
+                runtime_request.invocation_id or "phase3",
+                specification.authority,
+                lane.generation,
+                specification.goal,
+                lane.resources.physical_paths,
+                lane.required_scenarios,
+                ContextCurator(
+                    int(specification.budgets.get("effective_context_tokens", 20_000))
+                ).materialize((), impact),
+                mutation_mode="isolated_candidate",
+                risk_class="L2",
+                candidate_baseline_digest=base_candidate.digest,
+                repository_id=runtime_request.repository_id,
+                requested_ref=runtime_request.requested_ref,
+                resolved_commit=runtime_request.resolved_commit,
+                prohibitions=specification.prohibitions + lane.resources.protected_paths,
+                budgets=dict(specification.budgets),
+                escalation_conditions=(
+                    "architecture_change",
+                    "semantic_change",
+                    "scope_change",
+                    "external_side_effect",
+                ),
+            )
+            for lane in lanes
+        }
+        results = self._collect_lane_results(lanes, requests, parallel)
+        submissions: list[LaneSubmission] = []
+        for lane in lanes:
+            result = results[lane.lane_id]
+            if result.result_type not in {"patch_proposal", "isolated_candidate"}:
+                raise ContractError("phase3_lane_requires_patch_submission")
+            submission = LaneSubmission(
+                lane.lane_id,
+                lane.generation,
+                lane.trusted_writer,
+                specification.authority,
+                base_candidate.digest,
+                result.proposed_changes,
+                self._lane_verifier.verify(
+                    lane,
+                    LaneSubmission(
+                        lane.lane_id,
+                        lane.generation,
+                        lane.trusted_writer,
+                        specification.authority,
+                        base_candidate.digest,
+                        result.proposed_changes,
+                        False,
+                    ),
+                ),
+            )
+            coordinator.submit(submission)
+            submissions.append(submission)
+        return tuple(submissions)
+
+    def _collect_lane_results(
+        self,
+        lanes: tuple[WorkLane, ...],
+        requests: dict[str, WorkRequest],
+        parallel: bool,
+    ) -> dict[str, AgentResult]:
+        if not parallel:
+            return {
+                lane.lane_id: self._pull_lane(lane, requests[lane.lane_id])
+                for lane in lanes
+            }
+        results: dict[str, AgentResult] = {}
+        with ThreadPoolExecutor(max_workers=len(lanes)) as executor:
+            futures = {
+                executor.submit(self._pull_lane, lane, requests[lane.lane_id]): lane
+                for lane in lanes
+            }
+            for future in as_completed(futures):
+                lane = futures[future]
+                results[lane.lane_id] = future.result()
+        return results
+
+    def _pull_lane(self, lane: WorkLane, request: WorkRequest) -> AgentResult:
+        try:
+            driver = self._lane_drivers[lane.lane_id]
+        except KeyError as error:
+            raise ContractError("phase3_lane_driver_missing") from error
+        result = self._pull_with_recovery(driver, request)
+        self._agent_validator.validate(request, result)
+        return result
+
+    def _pull_with_recovery(
+        self,
+        driver: AgentDriverPort,
+        request: WorkRequest,
+    ) -> AgentResult:
+        for attempt in range(2):
+            try:
+                return driver.pull(request)
+            except (OSError, TimeoutError):
+                if attempt:
+                    break
+        raise ContractError("phase3_lane_driver_recovery_exhausted")
+
+    def _mark_groups_verified(
+        self,
+        coordinator: WorkCoordinator,
+        groups: tuple[ModuleWorkGroup, ...],
+    ) -> None:
+        for group in groups:
+            coordinator.mark_module_verified(group.group_id)
+
+    # The asset/audit/run sequence stays adjacent to prevent subject rebinding gaps.
+    def _verify_integrated(
+        self,
+        specification: WorkloadSpecification,
+        candidate: FrozenCandidate,
+        impact: ImpactClosure,
+    ) -> RuntimeOutcome:
+        proposals = self._asset_provider.build(candidate)
+        admissions = tuple(
+            self._auditor.audit(
+                baseline,
+                proposed,
+                specification.acceptance_scenarios,
+                independent_reviewer=True,
+            )
+            for baseline, proposed in proposals
+        )
+        results = tuple(
+            self._runner.run(
+                PytestAdapter().build_plan(
+                    admission.asset,
+                    candidate.root,
+                    adaptive_timeout_seconds(
+                        admission.asset.declared_duration_seconds,
+                        admission.asset.historical_p95_seconds,
+                        admission.asset.reliable_estimate_seconds,
+                    ),
+                )
+                if admission.asset.adapter_id == "pytest"
+                else FixedCommandAdapter().build_plan(
+                    admission.asset,
+                    candidate.root,
+                    adaptive_timeout_seconds(
+                        admission.asset.declared_duration_seconds,
+                        admission.asset.historical_p95_seconds,
+                        admission.asset.reliable_estimate_seconds,
+                    ),
+                )
+            )
+            for admission in admissions
+        )
+        decision = CompletionJudge().evaluate(candidate, impact, admissions, results)
+        if decision.work_package_completed:
+            decision = replace(decision, subsystem_integrated="subsystem_integrated")
+        else:
+            decision = replace(decision, subsystem_integrated="failed")
+        return RuntimeOutcome("phase3", decision, candidate, results, None)
+
+    def _resolve_impact(
+        self,
+        specification: WorkloadSpecification,
+        request: RuntimeRequest,
+        purpose: str,
+        changed_resources: tuple[str, ...],
+    ) -> ImpactClosure:
+        return self._impact_resolver.resolve(
+            MapQuery(
+                request.repository_id,
+                request.requested_ref,
+                request.resolved_commit,
+                specification.selected_nodes,
+                purpose,
+                changed_resources=changed_resources,
+            )
+        )
+
+    def _unowned_logical_overlap(
+        self,
+        lanes: tuple[WorkLane, ...],
+        shared_owners: dict[str, str],
+    ) -> tuple[str, ...]:
+        owners: dict[str, str] = {}
+        overlap: set[str] = set()
+        for lane in lanes:
+            for resource in lane.resources.logical_resources:
+                previous = owners.setdefault(resource, lane.lane_id)
+                declared_owner = shared_owners.get(resource)
+                if previous != lane.lane_id and declared_owner not in {
+                    previous,
+                    lane.lane_id,
+                }:
+                    overlap.add(resource)
+        return tuple(sorted(overlap))
+
+    def _blocked(
+        self,
+        reason: str,
+        impact: ImpactClosure,
+        submissions: tuple[LaneSubmission, ...] = (),
+    ) -> Phase3Outcome:
+        return Phase3Outcome(
+            CompletionDecision("blocked", "undetermined", "incomplete", reason, False),
+            None,
+            submissions,
+            (),
+            reason,
+            impact.consumed_facts,
+        )

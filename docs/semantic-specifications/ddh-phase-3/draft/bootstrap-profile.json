@@ -1,0 +1,114 @@
+{
+  "profile_id": "DDH-P3-BOOTSTRAP-001",
+  "version": "1.0.0",
+  "specification": "DDH-P3-SPEC-001@1.0.0",
+  "runtime_mode": "parallel_when_beneficial_with_serial_fallback",
+  "worker_execution": {
+    "driver": "typed_worker_driver_port",
+    "reference_adapter": "deterministic_in_process",
+    "maximum_parallel_lanes": "host_capacity_bounded",
+    "child_scope_expansion": false,
+    "child_central_integration": false,
+    "child_completion_publication": false
+  },
+  "parallel_admission": {
+    "requires_positive_net_benefit": true,
+    "requires_mechanical_write_separation": true,
+    "uncertain_overlap_result": "parallel_unsafe",
+    "reevaluate_on_cross_lane_churn": true,
+    "parallel_to_serial_fallback": "automatic_preserve_delta"
+  },
+  "budget_source_priority": [
+    "task_specification_explicit",
+    "approved_project_profile",
+    "calibrated_bootstrap"
+  ],
+  "budgets": {
+    "agent_model_usage": {
+      "ceiling_source": "host_or_task_required",
+      "minimum_unallocated_recovery_and_integration_reserve_ratio": 0.15,
+      "unobservable_usage_label": "estimated",
+      "waiting_agent_usage": 0,
+      "identical_no_progress_retry_limit": 0
+    },
+    "context_ingestion": {
+      "initial_envelope_max_ratio": 0.15,
+      "cumulative_full_source_default_max_ratio": 0.30,
+      "single_expansion_max_ratio": 0.05,
+      "reasoning_tool_output_reserve_min_ratio": 0.50,
+      "whole_subsystem_source_by_default": false
+    },
+    "work_package_wall_time": {
+      "ceiling_source": "task_or_host_required",
+      "budget_exhaustion_outcome": "budget_exhausted"
+    },
+    "verification_execution": {
+      "adaptive_timeout_safety_factor": 2.0,
+      "startup_margin_seconds": 30,
+      "unknown_duration_hard_deadline_seconds": 600,
+      "termination_and_output_drain_grace_seconds": 30,
+      "no_progress_minimum_seconds": 120,
+      "no_progress_requires_trusted_activity_signal": true,
+      "silent_output_is_not_hang": true,
+      "retained_stdout_bytes": 65536,
+      "retained_stderr_bytes": 65536
+    },
+    "recovery_attempts": {
+      "identical_attempt_limit": 0,
+      "transient_infrastructure_recovery_action_limit": 2,
+      "equivalent_backend_attempt_limit_per_backend": 1,
+      "new_evidence_does_not_reset_consumed_budget": true
+    },
+    "coordination": {
+      "routine_event_agent_token_budget": 0,
+      "wait_polling_agent_token_budget": 0,
+      "join_evaluation_agent_token_budget": 0,
+      "invalidation_routing_agent_token_budget": 0,
+      "maximum_retained_events_per_lane_generation": 128,
+      "maximum_cross_lane_requests_before_required_reassessment": 3
+    },
+    "stress_execution": {
+      "mutation_and_admission_observation_count": 10000,
+      "simulated_writer_count": 8,
+      "permanent_large_event_corpus_required": false,
+      "hard_deadline_seconds": 600
+    }
+  },
+  "integration": {
+    "admission_serialized_by_candidate_generation": true,
+    "deterministic_order_required": true,
+    "all_writers_quiescent_before_freeze": true,
+    "post_fence_write_result": "rejected_and_candidate_invalidated_if_landed",
+    "module_results_rerun_on_integrated_candidate": true
+  },
+  "required_platforms": [
+    {
+      "os": "windows-11",
+      "architecture": "x86_64",
+      "python": "3.13"
+    },
+    {
+      "os": "ubuntu-24.04",
+      "architecture": "x86_64",
+      "python": "3.13"
+    }
+  ],
+  "latest_stable_python": {
+    "required_for_completion": true,
+    "version_resolved_by_ci": true
+  },
+  "external_operation_budget": 0,
+  "forbidden_tradeoffs": [
+    "change_expected_behavior",
+    "remove_required_scenario",
+    "weaken_oracle",
+    "lower_required_threshold",
+    "expand_write_scope",
+    "increase_user_budget",
+    "prompt_only_parallel_mutation",
+    "grant_external_authority",
+    "mutate_user_workspace",
+    "infer_higher_layer_completion"
+  ]
+}
+

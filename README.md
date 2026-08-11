@@ -23,6 +23,11 @@ Phase 2 `DDH-P2-SPEC-001@1.0.0` 已取得 exact human confirmation，目前已�
 Ubuntu 24.04／Python 3.13 及 latest-stable CI matrix，才宣告 Phase 2
 `work_package_completed`。
 
+Phase 3 `DDH-P3-SPEC-001@1.0.0` 已取得 exact human confirmation；本機 reference
+implementation 現已提供 L2 的多 lane 協調、Change Guard activation、central Patch
+Admission、Join Barrier 與三 Module Subsystem fork/join 驗證。Windows 11、Ubuntu
+24.04／Python 3.13 及 latest-stable CI matrix 仍是 Phase 3 completion 的必要證據。
+
 Phase 1 建立的範圍包括：
 
 - `src/ddh/` 模組化 Python reference runtime。
@@ -39,6 +44,18 @@ Phase 2 新增：
 - actual impact 驅動的驗證擴張，但不隱性擴大 write scope。
 - 分離的 test repair proposal、機械 known-bad probe 與 independent admission。
 - Invocation recovery checkpoint 與同一規格下的冪等重啟。
+
+Phase 3 新增：
+
+- 只在可證明淨收益與機械寫入分離存在時才啟用的平行分流。
+- Module Work Group、product／acceptance Write Assignment、bounded Context 與
+  scoped handoff 的 typed reference runtime。
+- Change Guard 的 generation activation、fence、quiescence 與 late-writer
+  rejection。
+- Central Integrator 的 fixed-order Patch Admission 與 immutable integrated
+  Candidate。
+- 三 Module 加一條 Subsystem acceptance lane 的 asynchronous fork/join fixture；
+  Work Package completion 與 Subsystem integration 分開判定。
 
 仍不建立 System Map backend、legacy Task／Source Lock／Checkpoint、長期
 provenance、真實 external provider、deployment或release操作。
@@ -62,7 +79,9 @@ System Map 尚未完全落地；Bundle schema、狀態、API、currentness 與�
 - 由語意規格與風險共同決定的分層驗證。
 - 可選的 Dogfood、Adoption 與 Release 流程。
 
-多代理分區與精準子代理 Context Envelope 屬後續 Phase，不在 Phase 2 runtime。
+真實 remote Agent fleet、完整 Verification Asset portfolio lifecycle、System Map
+backend、long-term orchestration learning 與 external high-risk execution 仍屬後續
+Phase。
 
 ## Legacy 邊界
 
